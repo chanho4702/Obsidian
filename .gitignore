@@ -1,0 +1,10 @@
+# Obsidian workspace / cache (machine-specific, volatile)
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.obsidian/.DS_Store
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
