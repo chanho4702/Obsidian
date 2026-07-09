@@ -1,6 +1,6 @@
 ---
 tags: [msa, 템플릿, phase1]
-status: 대기
+status: 진행중 (2026-07-09 확인 — W5 상당 완료 + 계획에 없던 유레카 추가, W4/W6/W7 미착수)
 기간: 2026-07-05 ~ 2026-08-02
 관련: "[[msa-roadmap]]"
 이전: "[[phase0-week-breakdown]]"
@@ -26,17 +26,20 @@ status: 대기
 	- DoD: 새 서비스에서 공통 응답/예외가 그대로 동작
 
 ## W5 (7/12~7/18) — Gateway 라우팅 + 인증 필터
-- [ ] **Gateway 부트스트랩** — Spring Cloud Gateway 기동
+- [x] **Gateway 부트스트랩** — Spring Cloud Gateway 기동 — `MSA_TEMPLATE 정리/05, 10` (gateway-server :8000)
 	- DoD: Gateway가 뜸
-- [ ] **라우팅 규칙** — path 기반으로 2개 서비스 분기
+- [x] **라우팅 규칙** — path 기반으로 2개 서비스 분기 — 실제론 6개 라우트(auth 4개 + board 1개 + jwks)로 확장 구현
 	- DoD: `/a/**`, `/b/**` 가 각 서비스로 전달
-- [ ] **인증 필터** — JWT 검증 후 통과/차단
+- [x] **인증 필터** — JWT 검증 후 통과/차단 — `.oauth2ResourceServer(jwt)` + JWKS(`MSA_TEMPLATE 정리/10` ②③④)
 	- DoD: 토큰 없으면 Gateway에서 401
-- [ ] **사용자 정보 전파** — 헤더로 user id/role 전달
-	- DoD: 서비스가 헤더에서 사용자 식별
-- [ ] **traceId 발급** — Gateway에서 생성·헤더 주입
+- [~] **사용자 정보 전파** — 코드 확인 완료(2026-07-09): 별도 `X-User-Id`/`X-Role` 헤더 주입 **없음**. Gateway는 원본 `Authorization` 헤더를 그대로 패스스루하고, 각 서비스가 JWKS로 직접 재검증해 claim을 꺼냄(`gateway-server` README 명시, `board-service` 구조와 일치) — DoD 문구(헤더 전달)와는 다른 방식이지만 "서비스가 사용자 식별" 목적은 달성
+	- DoD: 서비스가 헤더에서 사용자 식별 → (실제로는 토큰 자체 재검증으로 식별, 헤더 미사용)
+- [x] **traceId 발급** — Gateway에서 생성·헤더 주입 — `RequestLoggingFilter`, `X-Request-Id` 검증+재발급(`MSA_TEMPLATE 정리/10` ⑥)
 	- DoD: 응답 헤더에 traceId 존재
-- [ ] **(주간 DoD)** — 2개 서비스 라우팅 + 토큰·traceId 전파 확인
+- [x] **(주간 DoD)** — 2개 서비스 라우팅 + 토큰·traceId 전파 확인 — E2E 통과(`MSA_TEMPLATE 정리/09` E2E 검증 결과)
+
+> [!note] 계획에 없던 추가: 유레카 서비스 디스커버리
+> W5 직후 정적 URI 라우팅의 한계(주소 변경 시 재기동)를 만나 **유레카 서비스 디스커버리(lb://)**를 도입·완료(2026-07-05, E2E 검증 포함) → [[../MSA_TEMPLATE 정리/09 유레카 서비스 디스커버리 (2026-07-05)|09 유레카 서비스 디스커버리]]. 원래 로드맵엔 없던 항목이라 W5/W6 사이 별도 작업으로 취급.
 
 ## W6 (7/19~7/25) — 서비스 간 통신
 - [ ] **클라이언트 선택** — OpenFeign vs WebClient

@@ -1,6 +1,6 @@
 ---
 tags: [msa, 인증, phase0]
-status: 진행중
+status: 완료 (2026-07-09 확인 — BFF+자체 JWT 방식으로 실현, 세부 계획과 경로는 다름)
 기간: 2026-06-15 ~ 2026-07-05
 관련: "[[msa-roadmap]]"
 ---
@@ -69,6 +69,9 @@ status: 진행중
 ---
 
 ## Phase 0 종료 기준
-- [ ] Gateway에서 Keycloak 토큰 검증 통과/실패가 의도대로 동작
-- [ ] role 기반 접근 제어(USER/ADMIN)가 한 서비스에서 검증됨
-- [ ] 다음 단계 → [[msa-roadmap#Phase 1 — MSA 템플릿 골격 W4–7 7 5 8 2|Phase 1: MSA 템플릿 골격]]
+- [x] Gateway에서 Keycloak 토큰 검증 통과/실패가 의도대로 동작 — `MSA_TEMPLATE 정리/10` 시나리오 B/C로 실증(만료 토큰 401, 유효 토큰 통과)
+- [x] role 기반 접근 제어(USER/ADMIN)가 한 서비스에서 검증됨 — `MSA_TEMPLATE 정리/03` 라이브 SSO 증명(본인 삭제 204 / 타인 403 / ADMIN 204)
+- [x] 다음 단계 → [[msa-roadmap#Phase 1 — MSA 템플릿 골격 W4–7 7 5 8 2|Phase 1: MSA 템플릿 골격]] (2026-07-09 기준 일부 진행 중, 상세는 [[phase1-week-breakdown]])
+
+> [!note] 실제 경로는 계획과 다름
+> W1~W3는 "Spring resource server가 Keycloak issuer-uri 직접 신뢰"로 짰지만, 실제 구현은 `auth-server`가 BFF로 Keycloak 로그인 결과를 받아 **자체 RS256 JWT**를 발급하고 각 리소스 서버는 그 JWKS만 신뢰하는 구조(`MSA_TEMPLATE 정리/01`). 목표(Gateway 검증 통과/실패, role 기반 접근)는 동일하게 달성됨.
