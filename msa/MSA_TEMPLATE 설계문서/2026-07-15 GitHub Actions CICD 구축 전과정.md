@@ -1,4 +1,4 @@
-# GitHub Actions CI/CD 구축 전과정 (2026-07-15 ~ )
+# GitHub Actions CI/CD 구축 전과정 (2026-07-15 ~ 07-19 완료)
 
 > 스펙: [[2026-07-15-github-actions-cicd-design]] · 플랜: [[2026-07-15-github-actions-cicd]]
 > 진행 원장: infra repo `.superpowers/sdd/progress.md`
@@ -81,15 +81,33 @@
 ### Task 7 — deploy.yml (완료)
 `repository_dispatch(deploy)` + `workflow_dispatch`(수동/롤백용) 수신. service별 `concurrency` 직렬화. 백엔드 분기(pull→up→healthy 대기 120s)·프론트 분기(gh run download→`.bak` 백업 후 폴더 스왑→nginx restart)·smoke(nginx + JWKS 체인). 리뷰 픽스: 프론트 스텝 `$ErrorActionPreference='Stop'` + nginx restart 종료코드 검사(무음 스왑 실패 방지).
 
-### Task 8 — board-service CI (진행 중)
-`ci.yml`: PR/push에 test, main push에 한해 GHCR push(latest+sha) + dispatch. 첫 완주 관찰 중.
+### Task 8 — board-service CI + 첫 완주 (완료)
+`ci.yml`: PR/push에 test, main push에 한해 GHCR push(latest+sha) + dispatch. 첫 완주 과정에서 트러블슈팅 2건:
 
-## 5. 남은 작업 (Wave 3~4)
-- Task 9: eureka/gateway/auth에 ci.yml 복제 (이미지명·service 값만 치환)
+- **사건 3 — DISPATCH_PAT 권한**: dispatch 스텝만 "Repository not found" 실패. infra-settings가 비공개 repo라 PAT의 Repository access 누락이 원인 — PAT 수정으로 해소. 진단 팁: 공개 repo는 check-runs annotations API로 익명 에러 조회 가능
+- **사건 4 — self-hosted runner에 pwsh 부재**: deploy job이 6초 만에 실패, runner `_diag` 로그에 `pwsh: command not found`. 클라우드 러너에는 PowerShell 7이 내장이지만 셀프호스트에는 없음 — `winget install Microsoft.PowerShell` + runner 재시작(PATH 재로딩)으로 해소
+
+완주 실측: 빈 커밋 push → CI green → GHCR 이미지 → runner가 pull+재기동 → healthy + API 200.
+
+## 4-5. Wave 3 — 백엔드 3개 복제 (완료)
+
+Task 8의 ci.yml을 3개 repo에 복제(이미지명·service 값 + **eureka/gateway는 기본 브랜치 master라 트리거·if 4곳 치환**). 3개 서비스 전부 자동 재배포 실측.
+
+- **사건 5(실버그) — .env 드리프트 재생성**: 배포 관찰 중 keycloak/postgres가 함께 재생성됨을 발견. runner 체크아웃에는 gitignore된 `.env`가 없어 `up -d`가 의존 서비스의 env 변화를 감지한 것. **deploy에 `--no-deps` 추가**로 대상 서비스만 조작하게 수정. DB 볼륨 영속이라 데이터 무손실
+
+## 4-6. Wave 4 — 프론트 3개 + DS (완료)
+
 - Task 10: nginx dist 마운트를 `C:\deploy\dist\{portal,wiki,alm}` 절대경로로 전환
-- Task 11: 프론트 3 CI — wiki/alm은 DS를 옆에 checkout해 `pnpm pack`으로 tgz 재생성(`--no-frozen-lockfile` 필요: tgz integrity가 lock과 달라질 수 있음), myFront는 npm
-- Task 12: design-system CI(typecheck/test/build만, 배포 없음)
-- Task 13: 최종 E2E + whole-branch 리뷰 + runner 서비스 전환 + 원장/메모리 마감
+- Task 11: 프론트 3 CI — wiki/alm은 DS를 옆에 checkout해 `pnpm pack`으로 tgz 재생성(`--no-frozen-lockfile`: tgz integrity가 lock과 달라질 수 있음), myFront는 npm. 3개 전부 dist 자동 교체(.bak 백업) + 3 URL 200 실측
+- Task 12: design-system CI(typecheck/test/build만) green
+
+## 5. 최종 리뷰 (whole-wave, 9 repo)
+
+교차 repo 와이어 계약 전수 검증 통과(payload service↔deploy 맵↔compose 이름↔이미지↔태그 env, 아티팩트 dist, DS tgz 파일명, 브랜치 트리거). 반영한 픽스:
+- **deploy.yml service 정확일치 검증 스텝** — 수동 실행(롤백 경로)의 오타가 "무서비스 pull" 또는 "배포 없이 green"이 되는 구멍 차단
+- 프론트3+DS ci.yml에 `permissions: contents: read` (토큰 권한 축소)
+
+수용된 후속 후보: dist swap try/catch 자가복구 + smoke에 /wiki/·/alm/ 추가, actions v5 일괄 범프, .dockerignore/USER/HEALTHCHECK, org-service 파이프라인 합류 시 deploy.yml 매핑.
 
 ## 6. 운영 메모 (구축 후 일상)
 - **배포하려면**: 해당 repo main에 push. 그게 전부. Actions 탭에서 진행 확인
