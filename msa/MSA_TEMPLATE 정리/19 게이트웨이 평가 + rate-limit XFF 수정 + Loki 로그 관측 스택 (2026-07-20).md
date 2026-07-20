@@ -1,7 +1,7 @@
 ---
 tags: [msa, template, gateway, ratelimit, x-forwarded-for, logging, observability, loki, alloy, grafana, 구현기록]
 작성일: 2026-07-20
-상태: 코드 완료 (gateway 테스트 green) · compose config 검증 · 수동 E2E 남음
+상태: 완료 · 배포·E2E 검증 완료(2026-07-20) — gateway 652aa4a · infra 4b0197e/164c10d
 ---
 
 # 19 — 게이트웨이 평가 + rate-limit XFF 수정 + Loki 로그 관측 스택 (2026-07-20)
@@ -102,10 +102,27 @@ private final XForwardedRemoteAddressResolver clientIpResolver =
 - **Retry 주석 정정** — `series: SERVER_ERROR`는 IOException뿐 아니라 5xx GET도 재시도한다("연결 실패만"은 부정확).
 - **requestId를 전 로그 라인 MDC로**(reactor context 전파) — 현재는 access log 2줄에만 실림. gateway 내부 에러 로그까지 상관관계 걸려면 필요.
 
-## 검증
+## 배포 — CI/CD와 부딪힌 함정 2개 (실측 기록)
+
+push 후 실제 배포에서 예상 못 한 두 지점을 만났다. 둘 다 [[13 백엔드 컨테이너화 + compose 통합 — CI-CD Wave 1 (2026-07-15)]]의 파이프라인 특성에서 비롯.
+
+**함정 ① deploy 워크플로는 서비스 단위 → 신규 obs 3서비스가 자동으로 안 뜬다.**
+`deploy.yml`은 `docker compose ... up -d --no-deps $svc`로 **해당 서비스 하나만** pull+재기동한다(dispatch payload의 service). gateway push는 gateway만 갱신 → compose에 새로 추가한 loki·alloy·grafana는 **CI 배포로 뜨지 않음**. 최초 1회는 수동:
+```bash
+cd infra/keycloak && docker compose up -d loki alloy grafana   # 프로젝트 platform에 합류
+```
+프로젝트명이 `platform` 고정이라 기존 스택 네트워크에 그대로 붙고, Alloy는 도커 소켓 tail이라 **이미 돌던 컨테이너 로그까지 소급 수집**한다. → README(infra) "배포·기동 주의"에 영구 기록.
+
+**함정 ② self-hosted 러너가 offline이면 deploy가 queued로 멈춘다.**
+gateway CI(빌드→GHCR→dispatch)는 success인데 infra-settings deploy가 8분째 queued. 원인은 로컬 러너 `DESKTOP-4TUOSLF` offline(서비스가 아니라 `run.cmd` 수동 실행). 러너 기동 후 deploy success(59s, smoke 통과). 러너는 config 완료 상태라 `run.cmd`(또는 큐 1개만 소화할 땐 `--once`)로 켠다.
+
+## 검증 (E2E 완료)
 
 - `gateway-server` 전체 테스트 green(JDK24). IpKeyResolverTest 4/4(XFF 추출·위조 차단 포함).
-- `docker compose config` OK(병합 문법 검증).
-- 수동 E2E 남음: compose up → Grafana에서 `{service="gateway"}` 로그 확인, rate limit이 **클라이언트별**로 걸리는지(`for` 루프 429).
+- `docker compose config` OK. 배포 후 **컨테이너 12개 Up**(기존 9 + obs 3).
+- **Loki 수집**: `service` 라벨에 전 12서비스(gateway·auth·board·org·nginx·keycloak·postgres·redis·eureka + loki·alloy·grafana). Alloy 소켓 접근 에러 0.
+- **gateway ECS JSON**: 새 이미지 + `SPRING_PROFILES_ACTIVE=docker` 확인. `request.in`/`request.out` 이벤트에 `status`·`latencyMs`·`requestId`·`service.name` 필드 출력. 예) `GET /api/board/posts -> 200 32ms`.
+- **Loki 파싱 성립**: `{service="gateway"} | json | status=200` 매칭(콜드스타트 4.5s 요청도 포착). Grafana `http://localhost:3000`(익명) Explore에서 조회 가능.
+- rate limit `for` 루프 429(클라이언트별)는 브라우저 다중 IP 재현 필요 — XFF 로직은 단위테스트로 고정, 실부하 확인은 후속.
 
 ← 처음으로: [[00 개요 — 전체 구조]]
