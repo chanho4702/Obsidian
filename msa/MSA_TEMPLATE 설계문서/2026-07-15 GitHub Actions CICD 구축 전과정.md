@@ -62,11 +62,20 @@
 | 용도 | 값 |
 |---|---|
 | 브라우저(authorization-uri) | `http://localhost:8080/realms/sso-demo/...` |
-| 서버-서버(token/jwks/userinfo/백채널 로그아웃) | `http://keycloak:8080/realms/sso-demo/...` (`KEYCLOAK_ISSUER_URI` 프로퍼티) |
+| 서버-서버(token/jwks) | `http://keycloak:8080/realms/sso-demo/...` (`KEYCLOAK_ISSUER_URI` 프로퍼티) |
 | ID 토큰 iss 검증 기준 | `http://localhost:8080/realms/sso-demo` (`KEYCLOAK_FRONT_ISSUER` env로 오버라이드 가능) |
 | userNameAttribute | `sub` (디스커버리 기본과 동일) |
 
 빈이 있으면 Boot 자동구성·디스커버리는 백오프. 단위 테스트 4개로 고정. 호스트 실행(기본 프로필)은 무변경.
+
+### 사건 2 후속 — userinfo·로그아웃도 iss-호스트 대조에 걸린다 (2026-07-19)
+
+split-horizon으로 로그인 리다이렉트는 통과했지만, 배포 환경 로그인이 이번엔 `invalid_user_info_response`로 다시 `/login?error`. 파고들어 나온 **두 번째 실측**: KC는 token/jwks뿐 아니라 **userinfo·백채널 로그아웃 요청의 호스트도 토큰 iss와 대조**한다.
+
+- **userinfo (auth-server `5fe8cae`)**: 같은 AT라도 `localhost:8080` 경유 userinfo는 200, `keycloak:8080` 경유는 **401**(실측). 즉 userinfo만은 백채널로 못 부른다. 해법: 수동 ClientRegistration에서 **`.userInfoUri(...)` 제거** — ID 토큰에 이미 `name/email/preferred_username` 클레임이 실려 있어(실측) `OidcUserService`가 userinfo 호출 없이 ID 토큰 클레임만으로 principal을 만든다. (위 표의 userinfo 항목이 이래서 빠졌다.)
+- **로그아웃 (infra-settings `8e0cc81`)**: 같은 대조가 백채널 end_session도 거부 — `keycloak:8080` end_session에 KC refresh_token 제출 시 `400 invalid_grant "Invalid token issuer. Expected 'http://keycloak:8080/...'"`. 로그아웃은 토큰을 KC에 **보내야** 해서 앱 레벨 회피가 불가([[keycloak-backchannel-logout]] 계약). 증상: 로컬 세션만 지워지고 KC SSO 세션은 살아남아 재로그인이 무프롬프트로 즉시 성공. 해법: **`KC_HOSTNAME=http://localhost:8080` 고정** — KC가 iss를 요청 호스트가 아니라 이 고정값으로 발급하게. hostname 고정 **후에도** 수동 ClientRegistration 구조는 유지된다(프로퍼티 issuer-uri가 여전히 `keycloak:8080`이라 디스커버리는 계속 불가).
+
+**한 줄 요약**: "브라우저는 localhost, 서버-서버는 keycloak" 원칙은 맞지만 — **KC가 iss로 호스트를 대조하는 엔드포인트(userinfo·로그아웃)** 는 그 원칙의 예외라, userinfo는 아예 안 부르고(ID 토큰 클레임 사용) 로그아웃은 KC hostname을 고정해 맞췄다.
 
 ## 4. Wave 2 — 파이프라인 완주 (진행 중, 2026-07-17~)
 
