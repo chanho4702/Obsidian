@@ -4,9 +4,9 @@ tags: [취업, 면접, auth, portfolio, 방어시트]
 상태: README 미끼 3종 방어 준비 완료
 ---
 
-# 17 — auth-server 면접 방어 시트 (쉬운 말 버전)
+# auth-server 면접 방어 시트 — 쉬운 말 버전
 
-상위: [[16 auth-server RT 하드닝 — 동시성·롤백 버그·수명 관리 (2026-07-19)]] · 대상: `github.com/chanho4702/auth-server` README의 "핵심 성과" 3개
+상위: [[auth-server RT 하드닝 — 동시성·롤백 버그·수명 관리 (2026-07-19)]] · 대상: `github.com/chanho4702/auth-server` README의 "핵심 성과" 3개
 
 > **원칙**: README에 쓴 미끼는 전부 1분 안에 설명할 수 있어야 한다. 설명 못 할 문장은 지우는 게 낫다.
 > 이 시트의 답변은 전부 실제 코드·테스트에서 나온 사실만 담았다 — 외운 티가 나도 거짓말은 아니다.

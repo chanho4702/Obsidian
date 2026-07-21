@@ -1,12 +1,16 @@
 ---
 tags: [msa, cicd, github-actions, phase1.5]
-status: 대기
+status: 일부 완료 (CI 구축됨)
+updated: 2026-07-21
 기간: Phase 1 완료 직후 (2026-08 초) · 약 3일
 관련: "[[msa-roadmap]]"
 이전: "[[phase1-week-breakdown]]"
 ---
 
 # Phase 1.5 — CI 파이프라인 (행동 단위)
+
+> [!success] 현황 (2026-07-21)
+> 기본 CI 워크플로와 GHCR 이미지 Push는 이미 완료됐다(2026-07-15). SonarCloud 품질 게이트는 미확인 상태다. 구현 로그 [[00 개요 — 전체 구조]] 13번 및 CICD 설계문서 참고.
 
 > [!info] 왜 여기(K8s보다 한참 앞)인가
 > CI는 배포 타깃(Compose / K8s)과 무관하다. 템플릿이 `compose up`으로 도는 순간부터
@@ -15,9 +19,9 @@ status: 대기
 > Jenkins / SonarQube(자체) / Nexus 는 **나중 슬롯**으로 보류.
 
 ## 작업 (반나절~하루 단위)
-- [ ] **기본 CI 워크플로** — `.github/workflows/ci.yml` 로 build + test 자동화
+- [x] **기본 CI 워크플로** — `.github/workflows/ci.yml` 로 build + test 자동화
 	- DoD: push 시 Actions가 자동 빌드/테스트, 실패하면 빨간불
-- [ ] **이미지 빌드 + GHCR Push** — 멀티스테이지 빌드 → GitHub Container Registry에 태그 푸시
+- [x] **이미지 빌드 + GHCR Push** — 멀티스테이지 빌드 → GitHub Container Registry에 태그 푸시
 	- DoD: main 머지 시 이미지가 GHCR에 올라감 (Nexus 없이 레지스트리 확보)
 - [ ] **SonarCloud 품질 게이트** — 정적 분석 + 커버리지 임계치
 	- DoD: 기준 미달 PR은 머지 차단

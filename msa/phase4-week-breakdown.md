@@ -1,12 +1,16 @@
 ---
 tags: [msa, kafka, 이벤트, phase4]
 status: 대기
+updated: 2026-07-21
 기간: 2026-10-04 ~ 2026-11-01
 관련: "[[msa-roadmap]]"
 이전: "[[phase3-week-breakdown]]"
 ---
 
 # Phase 4 — 이벤트 기반 확장 (행동 단위)
+
+> [!note] 결정 변경 (2026-07-20) — 이벤트 버스 Kafka → Redis Streams
+> 실제 ALM/Wiki 구현(wiki-backend)에서는 이벤트 버스를 Kafka가 아니라 **Redis Streams**로 확정했다 — 원래 15번 설계 결정을 변경한 것([[15 ALM·Wiki 백엔드 요구사항 + 서비스 분할 설계 (2026-07-19)]]), 운영 부담·인프라 최소화가 이유다. 아래 Kafka 계획은 학습 목적으로 그대로 남기되, 템플릿 기본 이벤트 버스로 Kafka를 채택할지는 재검토 대상이다.
 
 > 한 칸 = 1~3시간 + 미니 DoD. Kafka는 **선택 기능**으로 붙인다. 목표는 서비스 간 직접 호출 줄이기.
 

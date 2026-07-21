@@ -4,9 +4,9 @@
 상태: 코드 완료(로컬 커밋) · 수동 E2E 검증 대기
 ---
 
-# 인증 8단계 — Keycloak BFF 자체-JWT 플랫폼 (구현 기록)
+# 인증 8-9단계 — Keycloak BFF 자체-JWT 플랫폼 (구현 기록)
 
-> [[인증 6-7단계 OAuth2-OIDC 로그인]] / [[인증 6-7단계 프론트엔드 — 회원가입·모듈화·UX]]의 연장.
+> [[인증 6-7단계 — OAuth2-OIDC 로그인]] / [[인증 6-7단계 프론트엔드 — 회원가입·모듈화·UX]]의 연장.
 > [[인증 로드맵]]에서 "Keycloak에 OIDC를 위임하고 우리는 자체 JWT를 발급한다" 모델을 실제로 구현한 단계.
 
 ## 무엇을 만들었나
@@ -16,7 +16,7 @@ myFront(React SPA)는 **자체 발급 JWT만** 소지한다(Access Token = 메�
 핵심 흐름:
 - 로그인: 프론트 버튼 → `:9000/oauth2/authorization/keycloak` → Keycloak 화면 → 성공핸들러가 RT 쿠키 + `/app` 리다이렉트.
 - 세션 복원(silent): 프론트 마운트 시 `POST /api/auth/refresh`(RT 쿠키) → `{accessToken}` 수령 → `/api/me`로 사용자 정보.
-- 로그아웃: `POST /api/auth/logout` → 패밀리 폐기 + Keycloak `end_session` URL 반환 → 프론트가 전체 페이지 이동(SSO 세션 종료). ⚠️ **이 방식은 폐기됨**(id_token 만료로 SSO가 안 끊김) → 백채널로 교체: [[인증 8단계 — 로그아웃 백채널 수정 (구현 기록)]]
+- 로그아웃: `POST /api/auth/logout` → 패밀리 폐기 + Keycloak `end_session` URL 반환 → 프론트가 전체 페이지 이동(SSO 세션 종료). ⚠️ **이 방식은 폐기됨**(id_token 만료로 SSO가 안 끊김) → 백채널로 교체: [[인증 11단계 — 로그아웃 백채널 수정 (구현 기록)]]
 
 ## 결과 (이번 세션, 로컬 커밋만 · push 보류)
 

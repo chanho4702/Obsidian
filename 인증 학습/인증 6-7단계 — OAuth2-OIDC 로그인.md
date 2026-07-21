@@ -5,7 +5,7 @@ project: oauth-oidc-login
 status: 완료 (Ready to merge)
 ---
 
-# 인증 6+7단계 — OAuth2 & Google OIDC 로그인
+# 인증 6-7단계 — OAuth2 & Google OIDC 로그인
 
 > 스터디 커리큘럼 6단계(OAuth2 이해) + 7단계(OIDC 이해)를 하나의 동작하는 실습으로 통합.
 > 기존 `jwt-security-module`(설정 기반 JWT 모듈)을 재사용하고 그 위에 Google OIDC 로그인을 얹음.

@@ -4,7 +4,7 @@ tags: [msa, template, security, auth, refresh-token, hardening, testcontainers]
 상태: 구현 완료 (feature/auth-hardening 푸시됨, main 머지 전)
 ---
 
-# 16단계 — auth-server RT 하드닝: 동시성·롤백 버그·수명 관리
+# auth-server RT 하드닝 — 동시성·롤백 버그·수명 관리
 
 상위: [[00 개요 — 전체 구조]] · 관련: [[01 인증 플랫폼 (Keycloak BFF + 자체 JWT)]], [[07 보안 감사 + 하드닝 (2026-07-02)]] · 설계: [[2026-07-19-auth-server-hardening-design]] · 계획: [[2026-07-19-auth-server-hardening]]
 

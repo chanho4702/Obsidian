@@ -1,10 +1,14 @@
 ---
 tags: [pms, 인증, 백로그]
-status: 보류 (MSA 템플릿 완성 후 착수)
+status: ALM/Wiki로 구체화, Wave A/B 부분 착수
+updated: 2026-07-21
 관련: "[[msa-roadmap]]"
 ---
 
 # PMS 백로그 (인증 / 권한)
+
+> [!success] 현황 (2026-07-21)
+> 겨냥 제품이 ALM/Wiki로 구체화되면서, 템플릿(플랫폼) 완성 전임에도 Wave A(platform-backend·common-proto·org-service, 2026-07-19)와 Wave B(wiki-backend, 2026-07-21)로 이미 부분 착수됐다. 구현 로그 [[00 개요 — 전체 구조]] 15·16·17번 참고.
 
 > [!info] 이 노트의 위치
 > PMS는 **MSA 템플릿 위에 올릴 첫 번째 실제 서비스**다. 순서는 **템플릿(플랫폼) 먼저 → PMS 나중**.

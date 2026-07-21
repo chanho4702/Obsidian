@@ -544,7 +544,7 @@ platform:
 **Files:**
 - Modify: `gateway-server/README.md` (역할 목록 갱신: rate limit·타임아웃·CB·JWT 조기차단, "토큰 검증 없음" 문구 수정)
 - Modify: `C:\MSA_TEMPLATE\.superpowers\sdd\progress.md` (세션 원장)
-- Modify: Obsidian `MSA_TEMPLATE 정리/07 보안 감사 + 하드닝 (2026-07-02).md` 로드맵 체크 + `05 API 게이트웨이 설계 (미래).md`에 구현 반영 노트
+- Modify: Obsidian `MSA_TEMPLATE 정리/07 보안 감사 + 하드닝 (2026-07-02).md` 로드맵 체크 + `05 API 게이트웨이 설계 (구현 완료).md`에 구현 반영 노트
 
 - [ ] **Step 1: gateway README 갱신** — "무엇을 하나" 섹션에 4개 역할 추가, 이중 검증 원칙(게이트웨이=1차, 서비스=최종) 명시, Redis 선택적(fail-open) 명시
 - [ ] **Step 2: 원장에 태스크별 커밋 SHA 기록**

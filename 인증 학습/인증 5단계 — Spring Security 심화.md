@@ -5,10 +5,10 @@ stage: 5
 updated: 2026-06-17
 ---
 
-# 5단계. Spring Security 심화 — 직접 만든 걸 표준 부품으로
+# 인증 5단계 — Spring Security 심화: 직접 만든 걸 표준 부품으로
 
 > [!abstract] 한 줄
-> 5단계는 "전부 외워서 백지에서 짜는" 단계가 아니라, **[[4단계. 토큰 보안 (Access·Refresh)|4단계]]에서 직접 만든 인터셉터/검증을 Spring Security의 표준 부품으로 갈아끼우는 단계**다. 밑바닥 원리는 3·4단계에서 이미 익혔으니, 여기선 그 지식을 **프레임워크 관용구에 매핑**한다.
+> 5단계는 "전부 외워서 백지에서 짜는" 단계가 아니라, **[[인증 4단계 — 토큰 보안 (Access·Refresh)|4단계]]에서 직접 만든 인터셉터/검증을 Spring Security의 표준 부품으로 갈아끼우는 단계**다. 밑바닥 원리는 3·4단계에서 이미 익혔으니, 여기선 그 지식을 **프레임워크 관용구에 매핑**한다.
 
 실습: `C:\myStudy\springSecurity` — `tokenSecurity`(4단계)를 이관. 토큰 메커니즘 자체(`JwtProvider`·`RefreshTokenStore`·`AccessTokenBlacklist`·회전·재사용탐지·블랙리스트)는 **그대로 유지**하고, 검증 경로만 Security로 옮긴다.
 
@@ -82,5 +82,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter { ... }
 - 틀린 비번 → **401 BAD_CREDENTIALS**, 올바른 비번 → 인증 통과(RT 발급 단계에서만 Redis 필요). → Spring Security 인증 체인 완전 동작 확인.
 
 ## 🔗 연결
-- 이전: [[4단계. 토큰 보안 (Access·Refresh)]] · 다음: [[인증 6-7단계 OAuth2-OIDC 로그인]]
+- 이전: [[인증 4단계 — 토큰 보안 (Access·Refresh)]] · 다음: [[인증 6-7단계 — OAuth2-OIDC 로그인]]
 - 로드맵: [[인증 로드맵]]

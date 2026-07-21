@@ -4,7 +4,7 @@ stage: 0
 date: 2026-06-07
 ---
 
-# 0단계. Spring Security 기초
+# 인증 0단계 — Spring Security 기초
 
 ## 1. HTTP Stateless — 모든 문제의 출발점
 

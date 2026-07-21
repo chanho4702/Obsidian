@@ -1,12 +1,16 @@
 ---
 tags: [msa, 템플릿, phase1]
-status: 진행중 (2026-07-09 확인 — W5 상당 완료 + 계획에 없던 유레카 추가, W4/W6/W7 미착수)
+status: 진행중 (2026-07-21 갱신 — W5 상당 완료 + 유레카 완료, W4/W6/W7 여전히 미착수, ALM/Wiki Wave A/B는 별도 트랙에서 진행 중)
+updated: 2026-07-21
 기간: 2026-07-05 ~ 2026-08-02
 관련: "[[msa-roadmap]]"
 이전: "[[phase0-week-breakdown]]"
 ---
 
 # Phase 1 — MSA 템플릿 골격 (행동 단위)
+
+> [!success] 현황 (2026-07-21)
+> Gateway 라우팅·인증 필터·traceId(W5 상당)와 계획에 없던 유레카 서비스 디스커버리는 완료됐다. 이후 ALM/Wiki 제품 백엔드 Wave A(platform-backend·common-proto·org-service, 2026-07-19)·Wave B(wiki-backend, 2026-07-21)가 별도 트랙으로 진행됐다. 다만 **W4(멀티모듈 starter-*)와 W6(서비스 간 통신)은 여전히 미착수** — 각 서비스가 별도 repo라 공유 모듈 구조부터 재설계가 필요하다. 구현 로그 [[00 개요 — 전체 구조]] 16·17번 참고.
 
 > 한 칸 = 1~3시간 + 미니 DoD. 매주 마지막 칸이 주간 DoD.
 > 목표: **새 서비스 하나 추가하면 바로 붙는 구조.** Phase 0의 Keycloak이 여기 compose에 들어간다.

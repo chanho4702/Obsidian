@@ -6,7 +6,7 @@ updated: 2026-07-19
 # auth-server 보안 강화 — 설계
 
 - **작성일:** 2026-07-19
-- **상태:** 승인됨 (구현 계획 작성 전)
+- **상태:** 구현 완료 (2026-07-19, 이 plans 문서 기준)
 - **홈:** `C:\MSA_TEMPLATE\auth-server`
 - **기반:** [[auth-server 개선점 정리]] (2026-07-18 심층 분석) — 코드 대조 검증 결과 전 항목 사실로 확인.
 
@@ -168,3 +168,12 @@ DELETE FROM refresh_tokens WHERE family_id IN (
 4. §4 타임아웃
 5. §5 청소 배치
 6. 문서 갱신 (원문서 상태 반영)
+
+## 10. 구현 결과 노트 (2026-07-19, Boot 4.0.6 실측 — 설계와 달랐던 지점)
+
+브랜치 `feature/auth-hardening` 9커밋, 테스트 43/43 green, 최종 전체 리뷰 **READY**(Critical/Important 0). 상세: [[auth-server RT 하드닝 — 동시성·롤백 버그·수명 관리 (2026-07-19)]].
+
+- **§4 로그인 토큰 교환 타임아웃**: `spring.http.client.*` yml은 바인딩되지만 Security 7 토큰 교환 클라이언트에 연결되지 않음(바이트코드 확인 — `OAuth2LoginConfigurer`는 Boot 자동구성 무관하게 bare `RestClient.builder()` 사용). 설계의 대체안이었던 `OAuth2AccessTokenResponseClient` 빈이 유일한 실효 경로라 그것으로 구현. yml 미수정.
+- `ClientHttpRequestFactorySettings`는 Boot 4.0.6에서 별도 모듈이라 classpath에 없음 → `JdkClientHttpRequestFactory`(spring-web 내장)로 구현.
+- **§6 Testcontainers 의존성**: Boot 4.0.6 BOM = TC 2.0.5, 아티팩트명 `testcontainers-junit-jupiter`/`testcontainers-postgresql`(1.x 이름과 다름).
+- **§6 테스트 5(청소 배치)**: 설계 그대로의 테스트는 가족 단위 vs 행 단위 삭제를 판별하지 못함(증거물 행의 자체 만료가 미래) — 리뷰에서 지적돼 "자체 만료 지난 증거물 행 + 살아있는 형제" 판별 테스트를 추가함.

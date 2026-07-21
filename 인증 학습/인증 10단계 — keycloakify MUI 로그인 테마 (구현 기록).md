@@ -4,11 +4,11 @@
 상태: 빌드·배포·헤드리스 검증 완료(로컬+원격 push) · 브라우저 시각확인 대기
 ---
 
-# 인증 8단계 — keycloakify MUI 로그인 테마 (구현 기록)
+# 인증 10단계 — keycloakify MUI 로그인 테마 (구현 기록)
 
-> [[인증 8단계 — Keycloak BFF 자체-JWT 플랫폼 (구현 기록)]]의 후속.
+> [[인증 8-9단계 — Keycloak BFF 자체-JWT 플랫폼 (구현 기록)]]의 후속.
 > 그 단계에서 만든 Keycloak 로그인 화면을 **myFront 디자인 언어로 맞춘** 작업.
-> 로그인 모델 자체는 그대로 — [[인증 6-7단계 OAuth2-OIDC 로그인]]의 리다이렉트(OIDC Authorization Code) 유지.
+> 로그인 모델 자체는 그대로 — [[인증 6-7단계 — OAuth2-OIDC 로그인]]의 리다이렉트(OIDC Authorization Code) 유지.
 
 ## 왜 했나
 

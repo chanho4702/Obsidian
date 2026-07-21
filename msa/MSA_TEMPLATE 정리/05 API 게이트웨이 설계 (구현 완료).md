@@ -1,14 +1,14 @@
 ---
-tags: [msa, template, gateway, spring-cloud-gateway, 설계, 미구현]
+tags: [msa, template, gateway, spring-cloud-gateway, 설계, 구현완료]
 작성일: 2026-06-30
-상태: 설계만 (미구현)
+상태: 구현 완료 (2026-07-01, gateway-server :8000) — 이 문서는 설계 원안 요약
 ---
 
-# 5단계 — API 게이트웨이 설계 (미래)
+# 05 API 게이트웨이 설계 (설계 원안 · 2026-07-01 구현 완료)
 
 상위: [[00 개요 — 전체 구조]]
 
-> ⚠️ **아직 구현 안 됨.** 설계 문서(`docs/superpowers/specs/2026-06-30-msa-gateway-design.md`, 별도 세션 작성)만 존재. 여기는 그 요약.
+> ✅ **구현 완료됨** (2026-07-01, gateway-server :8000). 이 문서는 **설계 원안 요약**이고, 실제 구현 동작·평가는 [[08 게이트웨이 트래픽 제어 + JWT 조기차단 (2026-07-03)]] · [[10 게이트웨이 동작 흐름 코드 워크스루 (2026-07-05)]] · [[19 게이트웨이 평가 + rate-limit XFF 수정 + Loki 로그 관측 스택 (2026-07-20)]] 참고. 설계 스펙 원문은 `docs/superpowers/specs/2026-06-30-msa-gateway-design.md`.
 
 ## 목적
 

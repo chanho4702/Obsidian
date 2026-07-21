@@ -1,11 +1,10 @@
 ---
-단계: 4
-주제: 토큰 보안 (Access / Refresh)
+tags: [인증학습, 토큰보안, JWT, RefreshToken, AccessToken, 4단계, 실습]
+stage: 4
 실습프로젝트: C:\myStudy\tokenSecurity
-tags: [인증, 토큰보안, JWT, RefreshToken, 로드맵4단계]
 ---
 
-# 🛡️ 4단계. 토큰 보안 — Access / Refresh
+# 🛡️ 인증 4단계 — 토큰 보안 (Access·Refresh)
 
 > **한 줄 요약**
 > "못 막는 건 짧게(AT), 막을 수 있는 건 서버가 기억(RT)."
