@@ -149,6 +149,16 @@ test('frontmatter 를 파싱하고 본문에서 떼어낸다', () => {
   assert.equal(body.startsWith('# 제목'), true);
 });
 
+test('CRLF 문서도 frontmatter 를 정상 파싱한다', () => {
+  // 실제 볼트 22개 중 7개가 CRLF 다. \r 을 안 털면 meta 가 통째로 빈 객체가 된다.
+  const raw = '---\r\ntags: [msa, 인증]\r\n작성일: 2026-07-19\r\n상태: 정리본\r\n---\r\n\r\n# 제목\r\n본문';
+  const { meta, body } = parseFrontmatter(raw);
+  assert.deepEqual(meta.tags, ['msa', '인증']);
+  assert.equal(meta['작성일'], '2026-07-19');
+  assert.equal(meta['상태'], '정리본');
+  assert.equal(body.startsWith('# 제목'), true);
+});
+
 test('frontmatter 가 없으면 원문을 그대로 본문으로 돌려준다', () => {
   const { meta, body } = parseFrontmatter('# 제목\n본문');
   assert.deepEqual(meta, {});
@@ -180,6 +190,12 @@ test('별칭과 헤딩 앵커를 처리한다', () => {
   assert.equal(r.body, '[게이트웨이](/tech/notes/05)');
 });
 
+test('별칭 없이 앵커만 있으면 라벨에서 앵커를 뗀다', () => {
+  const resolve = (t) => (t === '05 API 게이트웨이 설계' ? '05' : null);
+  const r = transformWikiLinks('[[05 API 게이트웨이 설계#라우팅]]', resolve);
+  assert.equal(r.body, '[05 API 게이트웨이 설계](/tech/notes/05)');
+});
+
 test('화이트리스트 밖 위키링크는 일반 텍스트로 평탄화하고 보고한다', () => {
   const r = transformWikiLinks('앞 [[내 목표]] 뒤', () => null);
   assert.equal(r.body, '앞 내 목표 뒤');
@@ -206,7 +222,7 @@ test('콜아웃이 아닌 인용문은 건드리지 않는다', () => {
 
 - [ ] **Step 2: 테스트를 돌려 실패를 확인한다**
 
-Run: `node --test scripts/notes/`
+Run: `node --test scripts/notes/transform.test.mjs`
 Expected: FAIL — `Cannot find module '.../scripts/notes/transform.mjs'`
 
 - [ ] **Step 3: 최소 구현을 쓴다**
@@ -231,13 +247,17 @@ export function noteIdOf(filename) {
 
 /** YAML frontmatter 의 평평한 key: value 와 [a, b] 배열만 다룬다(yaml 의존성 없음). */
 export function parseFrontmatter(raw) {
-  const normalized = raw.replace(/^\uFEFF/, '');
+  // CRLF \uC815\uADDC\uD654\uB294 \uD544\uC218\uB2E4. JS \uC815\uADDC\uC2DD\uC5D0\uC11C \r \uC740 \uC904\uC885\uACB0\uC790\uB77C `$` \uAC00 \uADF8 \uC55E\uC5D0\uC11C \uBA48\uCD94\uACE0,
+  // `^([^:]+):\s*(.*)$` \uAC00 CR \uB85C \uB05D\uB098\uB294 \uC904\uC5D0\uC11C \uD1B5\uC9F8\uB85C null \uC744 \uBC18\uD658\uD574 meta \uAC00 \uC870\uC6A9\uD788 \uBE44\uC5B4\uBC84\uB9B0\uB2E4.
+  // \uC2E4\uC81C \uBCFC\uD2B8 22\uAC1C \uC911 7\uAC1C\uAC00 CRLF \uB2E4. \uC774\uD6C4 \uB2E8\uACC4\uB294 \uBAA8\uB450 \uC774 \uD568\uC218 \uCD9C\uB825\uC744 \uBC1B\uC73C\uBBC0\uB85C \uC5EC\uAE30\uC11C \uD134\uB2E4.
+  const normalized = raw.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
   if (!normalized.startsWith('---')) return { meta: {}, body: normalized };
   const end = normalized.indexOf('\n---', 3);
   if (end === -1) return { meta: {}, body: normalized };
 
   const head = normalized.slice(3, end);
-  const body = normalized.slice(end + 4).replace(/^\r?\n/, '');
+  // 닫는 --- 뒤의 남은 줄바꿈과 빈 줄을 전부 턴다. 한 줄만 지우면 본문이 \n 으로 시작한다.
+  const body = normalized.slice(end + 4).replace(/^[^\n]*\r?\n/, '').replace(/^\s*\r?\n/, '');
   const meta = {};
   for (const line of head.split('\n')) {
     const m = line.match(/^([^:]+):\s*(.*)$/);
@@ -275,7 +295,8 @@ export function transformWikiLinks(body, resolve) {
   const out = body.replace(/\[\[([^\]]+)\]\]/g, (_all, inner) => {
     const [linkPart, alias] = inner.split('|').map((s) => s.trim());
     const target = linkPart.split('#')[0].trim();
-    const label = alias || linkPart;
+    // 별칭이 없으면 앵커를 뗀 target 을 라벨로 쓴다. linkPart 를 쓰면 `#섹션` 이 링크 글자에 남는다.
+    const label = alias || target;
     const id = resolve(target);
     if (id) return `[${label}](/tech/notes/${id})`;
     broken.push(target);
@@ -290,8 +311,9 @@ export function transformWikiLinks(body, resolve) {
  * 타입이 색이 아니라 글자로 남아 색 단독 정보전달 문제도 없다.
  */
 export function transformCallouts(body) {
+  // 제목 부분은 [ \t]* 로 받는다 — \s* 는 \n 을 삼켜 다음 줄까지 라벨 안으로 끌어온다.
   return body.replace(
-    /^>\s*\[!(\w+)\]\s*(.*)$/gm,
+    /^>[ \t]*\[!(\w+)\][ \t]*(.*)$/gm,
     (_all, type, title) => {
       const label = title.trim()
         ? `**[${type.toUpperCase()}] ${title.trim()}**`
@@ -304,8 +326,8 @@ export function transformCallouts(body) {
 
 - [ ] **Step 4: 테스트를 돌려 통과를 확인한다**
 
-Run: `node --test scripts/notes/`
-Expected: PASS — `# pass 11`, `# fail 0`
+Run: `node --test scripts/notes/transform.test.mjs`
+Expected: PASS — `# pass 14`, `# fail 0`
 
 - [ ] **Step 5: 커밋**
 
@@ -480,7 +502,7 @@ main().catch((err) => {
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "sync:notes": "node scripts/sync-notes.mjs",
-    "test:scripts": "node --test scripts/notes/"
+    "test:scripts": "node --test scripts/notes/transform.test.mjs"
   },
 ```
 
