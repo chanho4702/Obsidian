@@ -934,7 +934,8 @@ export default function GridSection({
     <Box component="section" id={id} sx={{ borderTop: '1px solid', borderColor: 'divider', scrollMarginTop: '60px' }}>
       <Container maxWidth="lg" sx={{ py: { xs: 7, md: 12 } }}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 3, md: 6 }}>
-          <Box sx={{ width: { md: 180 }, flexShrink: 0, pt: { md: 0.5 } }}>
+          {/* 고정폭 라벨 컬럼. flexShrink 0 이라 긴 라벨이 콘텐츠 쪽으로 넘치지 않게 줄바꿈을 허용한다. */}
+          <Box sx={{ width: { md: 180 }, flexShrink: 0, pt: { md: 0.5 }, overflowWrap: 'anywhere' }}>
             <SectionLabel index={index} label={label} />
           </Box>
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>
@@ -1013,8 +1014,16 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import type { StatItem } from '../types';
 
-/** 수치 전면 노출 바. 숫자는 tabular-nums 로 자리를 고정한다. */
+/**
+ * 수치 전면 노출 바. 숫자는 tabular-nums 로 자리를 고정한다.
+ *
+ * 테두리는 컨테이너가 top·left, 각 칸이 right·bottom 을 맡아 내부 seam 을 한 요소만 그린다
+ * (이중선 방지). xs 는 2열 고정이므로 항목이 홀수면 마지막 행에 한 칸만 남아 우측·하단
+ * 모서리가 뚫린다 — 마지막 칸을 2열로 늘려 행을 채운다. md 는 항목 수만큼 열을 만들어
+ * 항상 정확히 나누어떨어진다.
+ */
 export default function StatBar({ items }: { items: StatItem[] }) {
+  const oddOnMobile = items.length % 2 === 1;
   return (
     <Box
       sx={{
@@ -1025,8 +1034,18 @@ export default function StatBar({ items }: { items: StatItem[] }) {
         borderColor: 'divider',
       }}
     >
-      {items.map((item) => (
-        <Box key={item.label} sx={{ borderRight: '1px solid', borderBottom: '1px solid', borderColor: 'divider', px: { xs: 2, md: 3 }, py: { xs: 2.5, md: 3.5 } }}>
+      {items.map((item, i) => (
+        <Box
+          key={item.label}
+          sx={{
+            borderRight: '1px solid',
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            px: { xs: 2, md: 3 },
+            py: { xs: 2.5, md: 3.5 },
+            gridColumn: { xs: oddOnMobile && i === items.length - 1 ? 'span 2' : 'auto', md: 'auto' },
+          }}
+        >
           <Typography
             sx={{ fontWeight: 700, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', fontSize: 'clamp(1.6rem, 3.5vw, 2.25rem)', lineHeight: 1.1 }}
           >
@@ -1055,6 +1074,9 @@ import CardContent from '@mui/material/CardContent';
 /**
  * 그림자 없는 아웃라인 카드. hover 는 border-color 만 바꾼다 —
  * transform 이동을 쓰지 않아 레이아웃이 흔들리지 않는다.
+ *
+ * hover 규칙은 링크일 때만 건다. to/href 가 없으면 클릭도 포커스도 안 되는 정적 카드인데,
+ * hover 에 반응하면 마우스 사용자에게 누를 수 있다는 잘못된 신호를 준다.
  */
 export default function HairlineCard({
   to,
@@ -1065,6 +1087,7 @@ export default function HairlineCard({
   href?: string;
   children: React.ReactNode;
 }) {
+  const interactive = Boolean(to || href);
   const body = <CardContent sx={{ p: { xs: 2.5, md: 3 }, height: '100%' }}>{children}</CardContent>;
   return (
     <Card
@@ -1075,7 +1098,7 @@ export default function HairlineCard({
         boxShadow: 'none',
         borderColor: 'divider',
         transition: (theme) => theme.transitions.create('border-color', { duration: 150 }),
-        '&:hover': { borderColor: 'primary.main' },
+        ...(interactive && { '&:hover': { borderColor: 'primary.main' } }),
         '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
       }}
     >
