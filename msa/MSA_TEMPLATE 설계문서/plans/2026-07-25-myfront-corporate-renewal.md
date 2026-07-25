@@ -874,6 +874,7 @@ git commit -m "feat(notes): 노트 조회 API + 마크다운 렌더러"
 export const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 
 /** 스티키 헤더 높이(px). SiteHeader 가 이 값으로 렌더한다. */
+export const HEADER_H = 56;
 
 /**
  * 해시 앵커로 이동했을 때 헤더 아래로 확보할 여백.
