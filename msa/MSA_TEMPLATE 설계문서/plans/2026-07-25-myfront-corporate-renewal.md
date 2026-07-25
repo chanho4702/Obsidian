@@ -54,6 +54,7 @@ tags: [msa, myfront, 리뉴얼, 옵시디언, plan]
 | `src/site/ui/HairlineCard.tsx` | 그림자 없는 아웃라인 카드 |
 | `src/site/ui/NoteBody.tsx` | 마크다운 렌더러 (react-markdown 래핑) |
 | `src/site/ui/slug.ts` | 헤딩 → id 슬러그 함수. NoteBody 와 목차가 **같은 함수**를 써야 앵커가 맞는다 |
+| `src/site/ui/tokens.ts` | 프리미티브·페이지가 공유하는 상수(`MONO` 모노스페이스 스택). 문자열 복제 금지 |
 | `src/site/ui/index.ts` | 배럴 |
 | `src/site/components/SiteHeader.tsx` | GNB (제품/기술/소개 + 문의 CTA, 활성 표시) |
 | `src/site/components/SiteFooter.tsx` | 푸터 (개발 도구 그룹 격리) |
@@ -746,6 +747,7 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Box from '@mui/material/Box';
 import { slugify } from './slug';
+import { MONO } from './tokens';
 
 /** 자식 노드에서 순수 텍스트만 뽑는다 — 헤딩 id 계산용. */
 function textOf(node: React.ReactNode): string {
@@ -794,7 +796,7 @@ export default function NoteBody({ markdown }: { markdown: string }) {
           color: 'text.secondary',
         },
         '& code': {
-          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+          fontFamily: MONO,
           fontSize: '0.875em',
           bgcolor: 'action.hover',
           px: 0.75,
@@ -855,6 +857,19 @@ git commit -m "feat(notes): 노트 조회 API + 마크다운 렌더러"
   - `<HairlineCard to?: string href?: string>{children}</HairlineCard>`
   - 배럴 `src/site/ui/index.ts`가 위 5개 + `NoteBody`를 재수출
 
+- [ ] **Step 0: 공유 토큰**
+
+`src/site/ui/tokens.ts`:
+
+```ts
+/**
+ * 모노스페이스 스택. 프리미티브와 페이지가 **전부 여기서 가져온다.**
+ * 이 문자열을 파일마다 복제하면 페이지를 늘릴 때 하나씩 어긋나기 시작한다 —
+ * 실제로 초안에서는 8개 파일에 11번 복제돼 있었다.
+ */
+export const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
+```
+
 - [ ] **Step 1: SectionLabel**
 
 `src/site/ui/SectionLabel.tsx`:
@@ -862,8 +877,7 @@ git commit -m "feat(notes): 노트 조회 API + 마크다운 렌더러"
 ```tsx
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-
-const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
+import { MONO } from './tokens';
 
 /** `SEC.02 / PRODUCTS` 모노 라벨. 엔지니어링 그리드의 기본 표식. */
 export default function SectionLabel({ index, label }: { index: string; label: string }) {
@@ -952,6 +966,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import type { SpecRow } from '../types';
+import { MONO } from './tokens';
 
 /** key/value 스펙 테이블. 값이 빈 행은 렌더하지 않는다(미확인 사실 금지 규칙). */
 export default function SpecTable({ rows }: { rows: SpecRow[] }) {
@@ -970,7 +985,7 @@ export default function SpecTable({ rows }: { rows: SpecRow[] }) {
             sx={{
               width: { sm: 148 },
               flexShrink: 0,
-              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+              fontFamily: MONO,
               fontSize: '0.75rem',
               letterSpacing: '0.08em',
               color: 'text.secondary',
@@ -1092,6 +1107,7 @@ export { default as StatBar } from './StatBar';
 export { default as HairlineCard } from './HairlineCard';
 export { default as NoteBody } from './NoteBody';
 export { slugify, tableOfContents } from './slug';
+export { MONO } from './tokens';
 export type { TocEntry } from './slug';
 ```
 
@@ -1633,6 +1649,7 @@ import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
+import { MONO } from '../ui';
 import { GITHUB_URL, CONTACT_EMAIL } from '../content';
 
 const siteLinks = [
@@ -1652,8 +1669,6 @@ const devLinks = [
   { to: '/components', label: '컴포넌트 카탈로그' },
   { to: '/showcase', label: '컴포넌트 쇼케이스' },
 ];
-
-const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 
 function LinkGroup({ title, items }: { title: string; items: { to: string; label: string }[] }) {
   return (
@@ -1773,7 +1788,7 @@ import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import SitePage from '../components/SitePage';
-import { GridSection, HairlineCard } from '../ui';
+import { GridSection, HairlineCard, MONO } from '../ui';
 import { ossProducts, companyProducts, type Product } from '../content';
 
 function ProductCard({ product }: { product: Product }) {
@@ -1792,7 +1807,7 @@ function ProductCard({ product }: { product: Product }) {
         <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', mt: 2, color: 'text.secondary' }}>
           <Typography
             variant="caption"
-            sx={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', letterSpacing: '0.08em' }}
+            sx={{ fontFamily: MONO, letterSpacing: '0.08em' }}
           >
             {product.repoUrl ? 'OPEN SOURCE' : '사내·고객사 제품 · 비공개'}
           </Typography>
@@ -1995,7 +2010,7 @@ import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import SitePage from '../components/SitePage';
-import { GridSection, SpecTable, HairlineCard } from '../ui';
+import { GridSection, SpecTable, HairlineCard, MONO } from '../ui';
 import { platformSpec, capabilities, techGroups, notes } from '../content';
 
 export default function TechPage() {
@@ -2024,7 +2039,7 @@ export default function TechPage() {
                 <HairlineCard>
                   <Typography
                     variant="caption"
-                    sx={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', letterSpacing: '0.1em', color: 'text.secondary' }}
+                    sx={{ fontFamily: MONO, letterSpacing: '0.1em', color: 'text.secondary' }}
                   >
                     {c.title}
                   </Typography>
@@ -2053,7 +2068,7 @@ export default function TechPage() {
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 0.5, sm: 2 }} sx={{ alignItems: { sm: 'baseline' } }}>
                 <Typography
                   sx={{
-                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                    fontFamily: MONO,
                     fontSize: '0.75rem',
                     color: 'primary.main',
                     fontVariantNumeric: 'tabular-nums',
@@ -2173,10 +2188,8 @@ import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import SitePage from '../components/SitePage';
-import { HairlineCard } from '../ui';
+import { HairlineCard, MONO } from '../ui';
 import { notes, allNoteTags } from '../content';
-
-const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 
 export default function NotesIndexPage() {
   const [query, setQuery] = useState('');
@@ -2290,11 +2303,9 @@ import Link from '@mui/material/Link';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import SitePage from '../components/SitePage';
-import { NoteBody, tableOfContents } from '../ui';
+import { NoteBody, tableOfContents, MONO } from '../ui';
 import { notes, getNote, getNoteBody } from '../content';
 import NotFoundPage from '../../app/pages/NotFoundPage';
-
-const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 
 /** 데스크톱 전용 목차. 모바일에서는 숨긴다(본문 위 긴 링크 목록이 더 방해된다). */
 function Toc({ markdown }: { markdown: string }) {
@@ -2458,7 +2469,7 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import SitePage from '../components/SitePage';
-import { GridSection, StatBar } from '../ui';
+import { GridSection, StatBar, MONO } from '../ui';
 import { career, caseStudies, stats } from '../content';
 
 /** 화이트 배경 다이어그램을 다크에서 튀지 않게 감싸는 프레임. */
@@ -2531,7 +2542,7 @@ export default function AboutPage() {
                         <Typography
                           variant="caption"
                           sx={{
-                            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                            fontFamily: MONO,
                             fontWeight: 700,
                             color: label === '성과' ? 'primary.main' : 'text.secondary',
                             minWidth: 40,
@@ -2684,10 +2695,8 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import SitePage from '../site/components/SitePage';
-import { GridSection, StatBar, HairlineCard } from '../site/ui';
+import { GridSection, StatBar, HairlineCard, MONO } from '../site/ui';
 import { stats, ossProducts, capabilities, notes } from '../site/content';
-
-const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 
 export default function Home() {
   const latest = notes.slice(-3).reverse();
