@@ -1912,7 +1912,12 @@ function ProductCard({ product }: { product: Product }) {
           <Typography variant="h6" component="h3" sx={{ fontWeight: 700, letterSpacing: '-0.01em' }}>
             {product.name}
           </Typography>
-          {product.badge && <Chip label={product.badge} size="small" color="primary" variant="outlined" />}
+          {/*
+            `liveUrl` 이 있으면 지금 바로 열어볼 수 있다는 뜻이다. 이 신호가 인덱스에 없으면
+            방문자는 상세로 들어가 봐야 구동 여부를 알 수 있다 — 구 랜딩에 있던 표기를 유지한다.
+          */}
+          {product.liveUrl && <Chip label="라이브" size="small" color="primary" variant="outlined" sx={{ borderRadius: '4px' }} />}
+          {product.badge && <Chip label={product.badge} size="small" color="primary" variant="outlined" sx={{ borderRadius: '4px' }} />}
         </Stack>
         <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7, flexGrow: 1 }}>
           {product.tagline}
