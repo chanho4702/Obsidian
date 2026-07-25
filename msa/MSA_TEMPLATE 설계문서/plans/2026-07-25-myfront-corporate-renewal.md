@@ -402,23 +402,32 @@ export interface NoteMeta {
 `transform.mjs` 끝에 다음 두 함수를 추가한다(순수 함수 계약 유지 — I/O 없음):
 
 ```js
-/** H1 앞에 붙은 번호와 구분자를 뗀다. 화면이 NO.15 를 따로 렌더하므로 중복을 막는다. */
-export function stripNumberPrefix(title) {
-  return title.replace(/^\d\d\s*(?:[—–-]\s*)?/, '').trim();
+/**
+ * H1 앞에 붙은 노트 번호와 구분자를 뗀다. 화면이 NO.15 를 따로 렌더하므로 중복을 막는다.
+ *
+ * 두 겹으로 잠근다 — 둘 중 하나만 어긋나도 원문을 그대로 돌려준다.
+ *  1) 앞 두 자리 **뒤에 공백이나 대시가 와야** 한다. `2026 회고` 가 `26 회고` 로 잘리는 것을 막는다.
+ *  2) 그 두 자리가 **이 노트의 id 와 같아야** 한다. 남의 번호를 떼지 않는다.
+ * 떼고 나서 남는 게 없으면(제목이 `00` 뿐) 원문을 유지한다 — 제목을 통째로 잃느니 중복이 낫다.
+ */
+export function stripNumberPrefix(title, id) {
+  const m = title.match(/^(\d\d)(?=[\s—–-])\s*(?:[—–-]\s*)?([\s\S]*)$/);
+  if (!m || m[1] !== id) return title.trim();
+  return m[2].trim() || title.trim();
 }
 
 /**
  * frontmatter 의 `상태` 를 배지용 짧은 라벨로 줄인다.
  * 첫 구분자(괄호 · 가운뎃점 · 대시 · 플러스) 앞까지만 취하고 마크다운/위키링크 문법을 턴다.
  * 원문(커밋 SHA·잔여 작업 메모)은 사이트에 싣지 않는다 — 배지 자리에 들어갈 정보가 아니다.
+ *
+ * 구분자로 **시작하는** 값(`(진행중) 완료`)은 첫 조각이 빈 문자열이 되어 상태가 통째로
+ * 사라진다. 그 경우 원문 전체를 정리해 쓴다 — 비어 있는 배지보다 긴 배지가 낫다.
  */
 export function statusLabel(status) {
-  return status
-    .split(/\s*\(|\s·\s|\s[—–-]\s|\s\+\s/)[0]
-    .replace(/\[\[.*?\]\]/g, '')
-    .replace(/\*\*/g, '')
-    .trim()
-    .slice(0, 24);
+  const clean = (s) => s.replace(/\[\[.*?\]\]/g, '').replace(/\*\*/g, '').trim();
+  const first = clean(status.split(/\s*\(|\s·\s|\s[—–-]\s|\s\+\s/)[0]);
+  return (first || clean(status)).slice(0, 24);
 }
 ```
 
@@ -426,9 +435,18 @@ export function statusLabel(status) {
 
 ```js
 test('제목 앞 번호와 구분자를 뗀다', () => {
-  assert.equal(stripNumberPrefix('15 — ALM·Wiki 백엔드 요구사항'), 'ALM·Wiki 백엔드 요구사항');
-  assert.equal(stripNumberPrefix('05 API 게이트웨이 설계'), 'API 게이트웨이 설계');
-  assert.equal(stripNumberPrefix('번호 없는 제목'), '번호 없는 제목');
+  assert.equal(stripNumberPrefix('15 — ALM·Wiki 백엔드 요구사항', '15'), 'ALM·Wiki 백엔드 요구사항');
+  assert.equal(stripNumberPrefix('05 API 게이트웨이 설계', '05'), 'API 게이트웨이 설계');
+  assert.equal(stripNumberPrefix('번호 없는 제목', '07'), '번호 없는 제목');
+});
+
+test('의미 있는 숫자로 시작하는 제목은 건드리지 않는다', () => {
+  // 두 자리 뒤에 공백/대시가 와야 번호로 본다. `2026` 은 `20` + `26` 으로 잘리면 안 된다.
+  assert.equal(stripNumberPrefix('2026 회고', '20'), '2026 회고');
+  // 남의 번호는 떼지 않는다.
+  assert.equal(stripNumberPrefix('15 — 어떤 제목', '07'), '15 — 어떤 제목');
+  // 떼면 아무것도 안 남는 제목은 원문을 유지한다. 중복이 제목 소실보다 낫다.
+  assert.equal(stripNumberPrefix('00', '00'), '00');
 });
 
 test('상태를 배지용 짧은 라벨로 줄인다', () => {
@@ -442,10 +460,17 @@ test('상태를 배지용 짧은 라벨로 줄인다', () => {
   assert.equal(statusLabel('완료 · 배포·E2E 검증 완료(2026-07-20)'), '완료');
   assert.equal(statusLabel('정리본'), '정리본');
 });
+
+test('구분자로 시작하는 상태도 라벨을 잃지 않는다', () => {
+  // 첫 조각이 빈 문자열이 되는 입력. 예전 구현은 상태를 통째로 삼켰다.
+  assert.equal(statusLabel('(진행중) 완료'), '(진행중) 완료');
+  assert.equal(statusLabel('[[17 Wave B]]'), '');
+  assert.equal(statusLabel(''), '');
+});
 ```
 
 Run: `node --test scripts/notes/transform.test.mjs`
-Expected: `# pass 16`, `# fail 0`
+Expected: `# pass 18`, `# fail 0`
 
 - [ ] **Step 2: 동기화 스크립트를 쓴다**
 
@@ -501,15 +526,17 @@ async function main() {
   }
   const resolve = (target) => idByTarget.get(target) ?? idByTarget.get(`${target}.md`) ?? null;
 
-  // 생성물만 지운다 — 폴더째 지우면 안 된다(수기 파일이 섞이면 날아간다).
+  // 생성물만 지운다. `.md` 전체가 아니라 `NN.md` 형태만 — 이 폴더에 손으로 둔 README.md 같은
+  // 파일이 경고도 없이 사라지면 안 된다. 볼트에서 삭제된 노트의 스테일 산출물은 이 규칙으로도 걷힌다.
   await mkdir(OUT_DIR, { recursive: true });
   for (const f of await readdir(OUT_DIR)) {
-    if (f.endsWith('.md') || f === 'index.generated.ts') await unlink(path.join(OUT_DIR, f));
+    if (/^\d\d\.md$/.test(f) || f === 'index.generated.ts') await unlink(path.join(OUT_DIR, f));
   }
 
   const index = [];
   const brokenAll = [];
   const missingMeta = [];
+  const statusLost = [];
 
   for (const file of targets) {
     const id = noteIdOf(file);
@@ -523,11 +550,13 @@ async function main() {
     const date = typeof meta['작성일'] === 'string' ? meta['작성일'] : '';
     const rawStatus = typeof meta['상태'] === 'string' ? meta['상태'] : '';
     const status = rawStatus ? statusLabel(rawStatus) : '';
+    // "상태가 원래 없던 노트" 와 "정규식이 상태를 통째로 삼킨 노트" 를 로그에서 구분한다.
+    if (rawStatus && !status) statusLost.push(file);
     if (!tags.length || !date) missingMeta.push(file);
     broken.forEach((b) => brokenAll.push(`${file} → [[${b}]]`));
 
     await writeFile(path.join(OUT_DIR, `${id}.md`), `${body.trimEnd()}\n`, 'utf8');
-    index.push({ id, title: stripNumberPrefix(title), tags, date, status });
+    index.push({ id, title: stripNumberPrefix(title, id), tags, date, status });
   }
 
   const generated = [
@@ -544,6 +573,7 @@ async function main() {
   console.log(`[sync-notes] 노트 ${index.length}개 동기화 완료 → ${OUT_DIR}`);
   if (skipped.length) console.log(`[sync-notes] 화이트리스트 제외 ${skipped.length}개: ${skipped.join(', ')}`);
   if (missingMeta.length) console.warn(`[sync-notes] 경고 — frontmatter 누락: ${missingMeta.join(', ')}`);
+  if (statusLost.length) console.warn(`[sync-notes] 경고 — 상태 라벨이 비었다(원문은 있음): ${statusLost.join(', ')}`);
   if (brokenAll.length) {
     console.warn(`[sync-notes] 경고 — 평탄화된 외부 위키링크 ${brokenAll.length}건:`);
     brokenAll.forEach((b) => console.warn(`  - ${b}`));
