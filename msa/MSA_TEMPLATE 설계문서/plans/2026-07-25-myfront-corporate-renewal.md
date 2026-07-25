@@ -1425,7 +1425,11 @@ export interface CaseStudy {
   solution: string;
   result: string;
   tags: string[];
-  images?: { src: string; alt: string }[];
+  /**
+   * `w`/`h` 는 원본 픽셀 크기다. 이걸 넘겨야 프레임이 비율대로 공간을 미리 잡아
+   * 로딩 중 레이아웃이 밀리지 않고, 고정 높이 레터박싱도 생기지 않는다.
+   */
+  images?: { src: string; alt: string; w: number; h: number }[];
 }
 
 export const caseStudies: CaseStudy[] = [
@@ -1440,8 +1444,8 @@ export const caseStudies: CaseStudy[] = [
       '진행률·인력 활용률·ROI를 실시간 대시보드로 시각화. 두 개의 장관상을 수상하고, 데이터 기반 의사결정 체계로 사내에 정착시켰습니다.',
     tags: ['Elasticsearch', 'Kibana', 'Spring', 'ALM 데이터 분석'],
     images: [
-      { src: '/arms-architecture.png', alt: 'A-RMS 시스템 아키텍처 다이어그램' },
-      { src: '/arms-award.png', alt: 'A-RMS 수상 발표 공고 — SW기술 대상 · 공개SW 개발자대회 대상' },
+      { src: '/arms-architecture.png', alt: 'A-RMS 시스템 아키텍처 다이어그램', w: 1549, h: 1524 },
+      { src: '/arms-award.png', alt: 'A-RMS 수상 발표 공고 — SW기술 대상 · 공개SW 개발자대회 대상', w: 800, h: 850 },
     ],
   },
   {
@@ -1461,7 +1465,7 @@ export const caseStudies: CaseStudy[] = [
     result:
       '퇴근 후·주말 2주 만에 재사용 가능한 MSA 플랫폼 골격을 완성했습니다. 이 소개 페이지도 그 위에서 만들었습니다.',
     tags: ['Keycloak', 'Spring Cloud Gateway', '디자인 시스템', 'MSA'],
-    images: [{ src: '/msa-architecture.jpg', alt: 'MSA 스타터 템플릿 아키텍처 다이어그램' }],
+    images: [{ src: '/msa-architecture.jpg', alt: 'MSA 스타터 템플릿 아키텍처 다이어그램', w: 1541, h: 998 }],
   },
 ];
 ```
@@ -2583,6 +2587,7 @@ import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import CardMedia from '@mui/material/CardMedia';
 import Chip from '@mui/material/Chip';
+import Link from '@mui/material/Link';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
@@ -2591,11 +2596,34 @@ import SitePage from '../components/SitePage';
 import { GridSection, StatBar, MONO } from '../ui';
 import { career, caseStudies, stats } from '../content';
 
-/** 화이트 배경 다이어그램을 다크에서 튀지 않게 감싸는 프레임. */
-function DiagramFrame({ src, alt, height }: { src: string; alt: string; height: number }) {
+/**
+ * 다이어그램 프레임.
+ *
+ * 고정 높이를 쓰지 않는다 — 1549×1524 다이어그램을 200px 높이에 `contain` 으로 넣으면
+ * 실제 렌더 폭이 203px, 원본의 13% 로 줄어 라벨을 아예 읽을 수 없다.
+ * 대신 원본 비율로 컬럼 폭을 꽉 채우고, 비율을 미리 선언해 로딩 중 레이아웃이 밀리지 않게 한다.
+ *
+ * 배경도 `common.white` 고정을 쓰지 않는다 — 수상 공고 이미지는 자체 배경이 어두워서,
+ * 다크모드에서 그 주위에만 순백 여백이 남아 오히려 눈에 튄다. 비율을 맞추면 여백 자체가
+ * 거의 없어지고, 남는 부분은 `background.paper` 라 양쪽 모드에서 자연스럽다.
+ *
+ * 조밀한 다이어그램은 컬럼 폭으로도 부족하므로 원본을 새 탭에서 열 수 있게 한다.
+ */
+function DiagramFrame({ src, alt, w, h }: { src: string; alt: string; w: number; h: number }) {
   return (
-    <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '4px', overflow: 'hidden', bgcolor: 'common.white' }}>
-      <CardMedia component="img" image={src} alt={alt} loading="lazy" sx={{ width: '100%', height, objectFit: 'contain', display: 'block' }} />
+    <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '4px', overflow: 'hidden', bgcolor: 'background.paper' }}>
+      <CardMedia
+        component="img"
+        image={src}
+        alt={alt}
+        loading="lazy"
+        sx={{ width: '100%', height: 'auto', aspectRatio: `${w} / ${h}`, display: 'block' }}
+      />
+      <Box sx={{ px: 1.5, py: 0.75, borderTop: '1px solid', borderColor: 'divider' }}>
+        <Link href={src} target="_blank" rel="noopener" variant="caption" sx={{ color: 'text.secondary' }}>
+          원본 크기로 보기
+        </Link>
+      </Box>
     </Box>
   );
 }
@@ -2694,7 +2722,7 @@ export default function AboutPage() {
                   <Grid size={{ xs: 12, md: 5 }}>
                     <Stack spacing={2}>
                       {c.images.map((img) => (
-                        <DiagramFrame key={img.src} src={img.src} alt={img.alt} height={img.src.includes('award') ? 300 : 200} />
+                        <DiagramFrame key={img.src} src={img.src} alt={img.alt} w={img.w} h={img.h} />
                       ))}
                     </Stack>
                   </Grid>
@@ -2724,7 +2752,7 @@ import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
 import LaunchRoundedIcon from '@mui/icons-material/LaunchRounded';
 import SitePage from '../components/SitePage';
 import { SpecTable } from '../ui';
-import { CONTACT_EMAIL, GITHUB_URL, PORTFOLIO_URL } from '../content';
+import { CONTACT_EMAIL, GITHUB_URL, PORTFOLIO_URL, career } from '../content';
 
 export default function ContactPage() {
   return (
@@ -2752,8 +2780,9 @@ export default function ContactPage() {
         <SpecTable
           rows={[
             { label: 'Email', value: CONTACT_EMAIL },
-            { label: 'GitHub', value: 'github.com/chanho4702' },
-            { label: '현재', value: '디무브 재직 중 — 서버리스 SaaS RMS 플랫폼 설계·구현' },
+            { label: 'GitHub', value: GITHUB_URL.replace(/^https?:\/\//, '') },
+            // career[0] 을 그대로 쓴다 — 여기서 문구를 다시 쓰면 이직·직함 변경 때 조용히 낡는다.
+            { label: '현재', value: career[0].text },
           ]}
         />
       </Container>
