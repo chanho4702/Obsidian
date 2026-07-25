@@ -751,7 +751,7 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Box from '@mui/material/Box';
 import { slugify } from './slug';
-import { MONO } from './tokens';
+import { MONO, ANCHOR_OFFSET } from './tokens';
 
 /** 자식 노드에서 순수 텍스트만 뽑는다 — 헤딩 id 계산용. */
 function textOf(node: React.ReactNode): string {
@@ -785,8 +785,8 @@ export default function NoteBody({ markdown }: { markdown: string }) {
       sx={{
         color: 'text.primary',
         lineHeight: 1.8,
-        '& h2': { fontSize: '1.5rem', fontWeight: 700, mt: 6, mb: 2, letterSpacing: '-0.01em', scrollMarginTop: '80px' },
-        '& h3': { fontSize: '1.15rem', fontWeight: 700, mt: 4, mb: 1.5, scrollMarginTop: '80px' },
+        '& h2': { fontSize: '1.5rem', fontWeight: 700, mt: 6, mb: 2, letterSpacing: '-0.01em', scrollMarginTop: ANCHOR_OFFSET },
+        '& h3': { fontSize: '1.15rem', fontWeight: 700, mt: 4, mb: 1.5, scrollMarginTop: ANCHOR_OFFSET },
         '& p': { my: 2 },
         '& a': { color: 'primary.main', textDecorationColor: 'currentColor' },
         '& ul, & ol': { pl: 3, my: 2 },
@@ -872,6 +872,15 @@ git commit -m "feat(notes): 노트 조회 API + 마크다운 렌더러"
  * 실제로 초안에서는 8개 파일에 11번 복제돼 있었다.
  */
 export const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
+
+/** 스티키 헤더 높이(px). SiteHeader 가 이 값으로 렌더한다. */
+
+/**
+ * 해시 앵커로 이동했을 때 헤더 아래로 확보할 여백.
+ * 헤더 높이에서 파생시킨다 — 60/80 처럼 손으로 적은 숫자가 흩어지면
+ * 헤더 높이를 바꾸는 순간 어떤 앵커는 헤더에 가리고 어떤 앵커는 안 가린다.
+ */
+export const ANCHOR_OFFSET = `${HEADER_H + 24}px`;
 ```
 
 - [ ] **Step 1: SectionLabel**
@@ -914,6 +923,7 @@ import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import SectionLabel from './SectionLabel';
+import { ANCHOR_OFFSET } from './tokens';
 
 /**
  * 좌측 고정폭 라벨 컬럼 + 우측 콘텐츠. 상단 헤어라인으로 섹션을 나눈다.
@@ -935,7 +945,7 @@ export default function GridSection({
   children: React.ReactNode;
 }) {
   return (
-    <Box component="section" id={id} sx={{ borderTop: '1px solid', borderColor: 'divider', scrollMarginTop: '60px' }}>
+    <Box component="section" id={id} sx={{ borderTop: '1px solid', borderColor: 'divider', scrollMarginTop: ANCHOR_OFFSET }}>
       <Container maxWidth="lg" sx={{ py: { xs: 7, md: 12 } }}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 3, md: 6 }}>
           {/* 고정폭 라벨 컬럼. flexShrink 0 이라 긴 라벨이 콘텐츠 쪽으로 넘치지 않게 줄바꿈을 허용한다. */}
@@ -1134,7 +1144,7 @@ export { default as StatBar } from './StatBar';
 export { default as HairlineCard } from './HairlineCard';
 export { default as NoteBody } from './NoteBody';
 export { slugify, tableOfContents } from './slug';
-export { MONO } from './tokens';
+export { MONO, HEADER_H, ANCHOR_OFFSET } from './tokens';
 export type { TocEntry } from './slug';
 ```
 
@@ -1547,7 +1557,7 @@ git commit -m "feat(site): 콘텐츠 계층을 src/site/content 로 분리"
 **Interfaces:**
 - Consumes: Task 5의 `GITHUB_URL`, `CONTACT_EMAIL`
 - Produces:
-  - `HEADER_H = 56`
+  - `HEADER_H` / `ANCHOR_OFFSET` 은 `src/site/ui/tokens.ts` 가 소유한다
   - `<SitePage>{children}</SitePage>` — AppTheme + CssBaseline + Header + main + Footer
 
 - [ ] **Step 1: SiteHeader**
@@ -1568,8 +1578,8 @@ import Drawer from '@mui/material/Drawer';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ColorModeIconDropdown from '../../context/templates/shared-theme/ColorModeIconDropdown';
+import { HEADER_H } from '../ui';
 
-export const HEADER_H = 56;
 
 const navItems = [
   { to: '/products', label: '제품' },
@@ -1758,17 +1768,46 @@ export default function SiteFooter() {
 ```tsx
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
+import Link from '@mui/material/Link';
 import AppTheme from '../../context/templates/shared-theme/AppTheme';
 import SiteHeader from './SiteHeader';
 import SiteFooter from './SiteFooter';
 
-/** 공개 사이트 공통 셸. 테마·헤더·푸터를 한 곳에서 감싼다. */
+/**
+ * 공개 사이트 공통 셸. 테마·헤더·푸터를 한 곳에서 감싼다.
+ *
+ * 스킵 링크가 여기 있는 이유: 스티키 헤더가 모든 페이지에 얹히므로, 없으면 키보드·스크린리더
+ * 사용자가 페이지를 옮길 때마다 GNB 3개 + CTA + 컬러모드 드롭다운을 매번 통과해야 한다.
+ * `display: none` 은 포커스를 받지 못하므로 화면 밖으로 밀어 두고 포커스 시 끌어온다.
+ */
 export default function SitePage({ children }: { children: React.ReactNode }) {
   return (
     <AppTheme>
       <CssBaseline enableColorScheme />
+      <Link
+        href="#main-content"
+        sx={{
+          position: 'fixed',
+          left: 8,
+          top: -80,
+          zIndex: (theme) => theme.zIndex.appBar + 1,
+          px: 2,
+          py: 1,
+          borderRadius: '4px',
+          bgcolor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
+          color: 'text.primary',
+          textDecoration: 'none',
+          '&:focus-visible': { top: 8 },
+        }}
+      >
+        본문으로 건너뛰기
+      </Link>
       <SiteHeader />
-      <Box component="main">{children}</Box>
+      <Box component="main" id="main-content" tabIndex={-1} sx={{ outline: 'none' }}>
+        {children}
+      </Box>
       <SiteFooter />
     </AppTheme>
   );
@@ -2062,7 +2101,7 @@ export default function TechPage() {
         <Grid container spacing={{ xs: 2, md: 2.5 }}>
           {capabilities.map((c) => (
             <Grid key={c.slug} size={{ xs: 12, sm: 6 }}>
-              <Box id={`cap-${c.slug}`} sx={{ height: '100%', scrollMarginTop: '80px' }}>
+              <Box id={`cap-${c.slug}`} sx={{ height: '100%', scrollMarginTop: ANCHOR_OFFSET }}>
                 <HairlineCard>
                   <Typography
                     variant="caption"
@@ -2924,6 +2963,8 @@ Expected: 테스트 `# fail 0`, 빌드 성공
 
 - [ ] **Step 5: 접근성**
 
+- 각 페이지에서 **Tab 을 한 번만 누르면 "본문으로 건너뛰기" 링크가 화면에 나타나고**, Enter 로
+  본문(`#main-content`)에 포커스가 옮겨간다. 헤더를 통과하지 않고 본문에 닿을 수 있어야 한다
 - 키보드 Tab 만으로 GNB → 본문 카드 → 푸터 순회, **포커스 링이 모든 단계에서 보인다**
 - 각 페이지 h1 이 정확히 하나 (devtools 에서 `document.querySelectorAll('h1').length` 로 확인)
 - 아이콘 전용 버튼(메뉴 열기/닫기, 컬러모드)에 `aria-label` 존재
