@@ -1259,18 +1259,18 @@ export const products: Product[] = [
     slug: 'design-system',
     name: 'Chanho Design System',
     category: 'oss',
-    tagline: '스틸 블루 토큰과 React 컴포넌트 라이브러리',
+    tagline: '디자인 토큰과 React 컴포넌트 라이브러리',
     summary:
       '세 개의 프론트가 같은 얼굴을 갖게 하는 공유 레이어. 토큰 패키지와 React 컴포넌트 패키지로 나뉘어, 색·간격 같은 값과 그 값을 쓰는 컴포넌트를 따로 버전 관리한다.',
     spec: [
       { label: '패키지', value: '@chanho/tokens (디자인 토큰) · @chanho/react (컴포넌트)' },
-      { label: '브랜드', value: '스틸 블루 #1B66C9 · 쿨 그레이 램프' },
-      { label: '소비처', value: 'wiki-front · alm-front (myFront 는 MUI 테마로 같은 램프를 재현)' },
+      { label: '팔레트', value: 'Atlassian 정렬 블루 #0C66E4 · 뉴트럴 스케일 (tokens 0.3.0)' },
+      { label: '소비처', value: 'wiki-front · alm-front' },
       { label: '배포', value: 'artifacts/*.tgz tarball — 소비 리포가 로컬 체크아웃으로 설치' },
     ],
     highlights: [
       '토큰을 CSS 변수(--chanho-*)로 노출해, 컴포넌트를 안 쓰는 커스텀 마크업도 같은 값을 쓰게 만들었다.',
-      'myFront 는 MUI 기반이라 컴포넌트를 공유하지 않지만, 브랜드 램프를 같은 hex 로 맞춰 세 프론트의 색이 어긋나지 않는다.',
+      '토큰 패키지를 버전으로 배포해, 소비 리포가 각자의 시점에 팔레트 변경을 받아들일 수 있게 했다.',
     ],
     repoUrl: 'https://github.com/chanho4702/design-system',
   },
@@ -1288,7 +1288,7 @@ export const products: Product[] = [
       { label: '이벤트', value: 'Redis Streams' },
       { label: '데이터', value: 'PostgreSQL' },
       { label: '관측', value: 'stdout JSON → Alloy → Loki → Grafana' },
-      { label: 'CI/CD', value: 'GitHub Actions → GHCR → 셀프호스티드 러너 배포' },
+      { label: 'CI/CD', value: 'GitHub Actions → GHCR → 셀프호스티드 러너 배포 (auth·gateway·eureka·board 적용)' },
       { label: '서비스', value: '백엔드 6 · 프론트 3 + 공유 디자인 시스템' },
     ],
     highlights: [
@@ -1743,7 +1743,7 @@ export default function SiteFooter() {
           </Box>
         </Stack>
         <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: { xs: 4, md: 6 } }}>
-          © {new Date().getFullYear()} 김찬호 · Built with React · MUI · 스틸 블루 디자인 시스템
+          © {new Date().getFullYear()} 김찬호 · Built with React · MUI
         </Typography>
       </Container>
     </Box>
