@@ -2102,7 +2102,7 @@ import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import SitePage from '../components/SitePage';
-import { GridSection, SpecTable, HairlineCard, MONO } from '../ui';
+import { GridSection, SpecTable, HairlineCard, MONO, ANCHOR_OFFSET } from '../ui';
 import { platformSpec, capabilities, techGroups, notes } from '../content';
 
 export default function TechPage() {
