@@ -2617,10 +2617,24 @@ function DiagramFrame({ src, alt, w, h }: { src: string; alt: string; w: number;
         image={src}
         alt={alt}
         loading="lazy"
-        sx={{ width: '100%', height: 'auto', aspectRatio: `${w} / ${h}`, display: 'block' }}
+        // objectFit 은 안전망이다 — 지금은 비율이 정확히 맞아 차이가 없지만,
+        // 이미지를 교체하거나 w/h 를 잘못 적으면 기본값(fill)이 그림을 늘려 버린다.
+        sx={{ width: '100%', height: 'auto', aspectRatio: `${w} / ${h}`, objectFit: 'contain', display: 'block' }}
       />
       <Box sx={{ px: 1.5, py: 0.75, borderTop: '1px solid', borderColor: 'divider' }}>
-        <Link href={src} target="_blank" rel="noopener" variant="caption" sx={{ color: 'text.secondary' }}>
+        {/*
+          링크 텍스트가 세 이미지에서 같아서, 스크린리더의 링크 목록으로 훑으면 어느 이미지의
+          원본인지 구분되지 않는다. alt 를 접근성 이름에 붙여 고유하게 만든다.
+          display:'block' 은 부모 패딩까지 탭 타깃으로 넓히기 위한 것.
+        */}
+        <Link
+          href={src}
+          target="_blank"
+          rel="noopener"
+          variant="caption"
+          aria-label={`${alt} 원본 크기로 보기`}
+          sx={{ display: 'block', color: 'text.secondary' }}
+        >
           원본 크기로 보기
         </Link>
       </Box>
