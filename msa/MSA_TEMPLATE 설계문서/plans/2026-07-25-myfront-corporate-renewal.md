@@ -1767,12 +1767,38 @@ export default function SiteFooter() {
 `src/site/components/SitePage.tsx`:
 
 ```tsx
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import Link from '@mui/material/Link';
 import AppTheme from '../../context/templates/shared-theme/AppTheme';
 import SiteHeader from './SiteHeader';
 import SiteFooter from './SiteFooter';
+
+/**
+ * 라우트가 바뀌며 들어온 해시(`/tech#cap-...`)로 스크롤한다.
+ *
+ * React Router 의 데이터 라우터는 URL 해시를 **스스로 처리하지 않는다.** `<ScrollRestoration>`
+ * 을 두거나 이렇게 직접 처리하지 않으면, `<Navigate to="/tech#cap-x">` 는 주소만 바꾸고
+ * 사용자는 아무 에러 없이 페이지 최상단에 떨어진다.
+ * (같은 문서 안의 `<a href="#...">` 목차 링크는 브라우저가 알아서 처리하므로 이 훅과 무관하다.)
+ *
+ * `querySelector` 가 아니라 `getElementById` 를 쓰는 이유: 노트 헤딩 슬러그는 한글이고
+ * 숫자로 시작할 수도 있어서(`#1단계`) CSS 선택자로는 파싱 에러가 난다.
+ */
+function useHashScroll() {
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!hash) return;
+    const el = document.getElementById(decodeURIComponent(hash.slice(1)));
+    if (!el) return;
+    el.scrollIntoView(); // scroll-margin-top(ANCHOR_OFFSET)을 존중한다
+    // 스크롤만 하면 스크린리더 사용자는 도착 사실을 모른다. 포커스도 함께 옮긴다.
+    if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
+    el.focus({ preventScroll: true });
+  }, [hash]);
+}
 
 /**
  * 공개 사이트 공통 셸. 테마·헤더·푸터를 한 곳에서 감싼다.
@@ -1782,6 +1808,7 @@ import SiteFooter from './SiteFooter';
  * `display: none` 은 포커스를 받지 못하므로 화면 밖으로 밀어 두고 포커스 시 끌어온다.
  */
 export default function SitePage({ children }: { children: React.ReactNode }) {
+  useHashScroll();
   return (
     <AppTheme>
       <CssBaseline enableColorScheme />
@@ -2969,6 +2996,8 @@ Expected: 테스트 `# fail 0`, 빌드 성공
 - `/tech` 역량 카드 4 · 노트 3 · "노트 전체 보기"
 - `/tech/notes` 20건 → 각 본문, 본문 내부 위키링크
 - 구 링크: `/services/platform-architecture`, `/services/data-engineering`, `/services/operations-reliability`, `/services/ai-dev-env`
+  — 주소만 `/tech`로 바뀌는 게 아니라 **해당 역량 카드까지 실제로 스크롤**되고, 카드가 헤더에
+  가리지 않아야 한다. 최상단에 머무르면 `SitePage`의 해시 스크롤 훅이 동작하지 않는 것이다
 
 - [ ] **Step 3: 기존 앱 라우트 회귀**
 
