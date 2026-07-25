@@ -445,7 +445,7 @@ test('상태를 배지용 짧은 라벨로 줄인다', () => {
 ```
 
 Run: `node --test scripts/notes/transform.test.mjs`
-Expected: `# pass 20`, `# fail 0`
+Expected: `# pass 16`, `# fail 0`
 
 - [ ] **Step 2: 동기화 스크립트를 쓴다**
 
