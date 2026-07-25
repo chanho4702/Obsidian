@@ -1878,7 +1878,7 @@ function ProductCard({ product }: { product: Product }) {
     <HairlineCard to={`/products/${product.slug}`}>
       <Stack sx={{ height: '100%' }}>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: '-0.01em' }}>
+          <Typography variant="h6" component="h3" sx={{ fontWeight: 700, letterSpacing: '-0.01em' }}>
             {product.name}
           </Typography>
           {product.badge && <Chip label={product.badge} size="small" color="primary" variant="outlined" />}
@@ -1977,25 +1977,35 @@ export default function ProductDetailPage() {
         <Typography sx={{ color: 'text.secondary', maxWidth: 680, fontSize: '1.1rem', lineHeight: 1.7 }}>
           {product.summary}
         </Typography>
-        <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1.5, mt: 4 }}>
-          {product.liveUrl && (
-            <Button variant="contained" href={product.liveUrl} startIcon={<LaunchRoundedIcon />} sx={{ borderRadius: '4px' }}>
-              라이브로 열기
-            </Button>
-          )}
-          {product.repoUrl && (
-            <Button
-              variant={product.liveUrl ? 'outlined' : 'contained'}
-              href={product.repoUrl}
-              target="_blank"
-              rel="noopener"
-              startIcon={<GitHubIcon />}
-              sx={{ borderRadius: '4px' }}
-            >
-              소스 보기
-            </Button>
-          )}
-        </Stack>
+        {/*
+          링크가 하나도 없는 사내 제품(moves-*)은 버튼 영역이 비어 여백만 남는다.
+          구 상세 페이지가 이 자리에 "비공개" 표기를 렌더했었으므로 그 정보를 잃지 않는다.
+        */}
+        {product.liveUrl || product.repoUrl ? (
+          <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1.5, mt: 4 }}>
+            {product.liveUrl && (
+              <Button variant="contained" href={product.liveUrl} startIcon={<LaunchRoundedIcon />} sx={{ borderRadius: '4px' }}>
+                라이브로 열기
+              </Button>
+            )}
+            {product.repoUrl && (
+              <Button
+                variant={product.liveUrl ? 'outlined' : 'contained'}
+                href={product.repoUrl}
+                target="_blank"
+                rel="noopener"
+                startIcon={<GitHubIcon />}
+                sx={{ borderRadius: '4px' }}
+              >
+                소스 보기
+              </Button>
+            )}
+          </Stack>
+        ) : (
+          <Typography variant="body2" sx={{ mt: 4, color: 'text.secondary' }}>
+            사내·고객사 제품 — 소스와 데모를 공개하지 않습니다.
+          </Typography>
+        )}
       </Container>
 
       <GridSection index="01" label="SPEC" title="구성">
@@ -2837,7 +2847,7 @@ export default function Home() {
           {ossProducts.map((p) => (
             <Grid key={p.slug} size={{ xs: 12, sm: 6, md: 3 }}>
               <HairlineCard to={`/products/${p.slug}`}>
-                <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: '-0.01em', mb: 1 }}>
+                <Typography variant="h6" component="h3" sx={{ fontWeight: 700, letterSpacing: '-0.01em', mb: 1 }}>
                   {p.name}
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
