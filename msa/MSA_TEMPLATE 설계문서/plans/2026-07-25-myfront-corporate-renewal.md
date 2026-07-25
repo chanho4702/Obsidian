@@ -1806,7 +1806,22 @@ export default function SitePage({ children }: { children: React.ReactNode }) {
         본문으로 건너뛰기
       </Link>
       <SiteHeader />
-      <Box component="main" id="main-content" tabIndex={-1} sx={{ outline: 'none' }}>
+      {/*
+        tabIndex={-1} 은 선택이 아니라 필수다 — <main> 은 네이티브로 포커스를 못 받아서,
+        해시로 이동해도 이게 없으면 브라우저가 포커스를 옮기지 않는다.
+        페이지 높이만 한 랜드마크에 기본 아웃라인을 두르는 건 의미가 없어 죽이되,
+        스킵 링크로 건너뛴 직후 "포커스가 어디 있는지" 단서가 아예 없으면 곤란하므로
+        포커스 시에만 상단에 옅은 표시를 남긴다.
+      */}
+      <Box
+        component="main"
+        id="main-content"
+        tabIndex={-1}
+        sx={{
+          outline: 'none',
+          '&:focus-visible': { boxShadow: (theme) => `inset 0 3px 0 0 ${theme.palette.primary.main}` },
+        }}
+      >
         {children}
       </Box>
       <SiteFooter />
