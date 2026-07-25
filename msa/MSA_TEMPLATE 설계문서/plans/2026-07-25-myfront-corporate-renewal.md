@@ -1155,7 +1155,7 @@ git add src/site/ui
 git commit -m "feat(site): 엔지니어링 그리드 프리미티브 5종"
 ```
 
-> `borderRadius: '4px'` 명시가 누락된 곳이 없는지 `grep -n "borderRadius: 1" src/site` 로 훑는다.
+> `borderRadius: '4px'` 명시가 누락된 곳이 없는지 `grep -n "borderRadius: '4px'" src/site` 로 훑는다.
 > 결과가 비어 있어야 한다.
 
 ---
@@ -1630,7 +1630,7 @@ export default function SiteHeader() {
             <Stack direction="row" spacing={3.5} sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
               {navItems.map((i) => navLink(i.to, i.label))}
               <ColorModeIconDropdown size="small" />
-              <Button component={RouterLink} to="/contact" variant="contained" size="small" sx={{ borderRadius: 1 }}>
+              <Button component={RouterLink} to="/contact" variant="contained" size="small" sx={{ borderRadius: '4px' }}>
                 문의하기
               </Button>
             </Stack>
@@ -1654,7 +1654,7 @@ export default function SiteHeader() {
           </Stack>
           <Stack spacing={2.5} sx={{ p: 2, pt: 1 }}>
             {navItems.map((i) => navLink(i.to, i.label, () => setOpen(false), true))}
-            <Button component={RouterLink} to="/contact" variant="contained" onClick={() => setOpen(false)} sx={{ borderRadius: 1 }}>
+            <Button component={RouterLink} to="/contact" variant="contained" onClick={() => setOpen(false)} sx={{ borderRadius: '4px' }}>
               문의하기
             </Button>
           </Stack>
@@ -1924,7 +1924,7 @@ export default function ProductDetailPage() {
         </Typography>
         <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1.5, mt: 4 }}>
           {product.liveUrl && (
-            <Button variant="contained" href={product.liveUrl} startIcon={<LaunchRoundedIcon />} sx={{ borderRadius: 1 }}>
+            <Button variant="contained" href={product.liveUrl} startIcon={<LaunchRoundedIcon />} sx={{ borderRadius: '4px' }}>
               라이브로 열기
             </Button>
           )}
@@ -1935,7 +1935,7 @@ export default function ProductDetailPage() {
               target="_blank"
               rel="noopener"
               startIcon={<GitHubIcon />}
-              sx={{ borderRadius: 1 }}
+              sx={{ borderRadius: '4px' }}
             >
               소스 보기
             </Button>
@@ -2127,7 +2127,7 @@ export default function TechPage() {
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
                 {g.items.map((item) => (
-                  <Chip key={item} label={item} size="small" variant="outlined" sx={{ borderRadius: 1 }} />
+                  <Chip key={item} label={item} size="small" variant="outlined" sx={{ borderRadius: '4px' }} />
                 ))}
               </Box>
             </Grid>
@@ -2261,7 +2261,7 @@ export default function NotesIndexPage() {
               variant={tag === null ? 'filled' : 'outlined'}
               color={tag === null ? 'primary' : 'default'}
               onClick={() => setTag(null)}
-              sx={{ borderRadius: 1 }}
+              sx={{ borderRadius: '4px' }}
             />
             {tags.map((t) => (
               <Chip
@@ -2271,7 +2271,7 @@ export default function NotesIndexPage() {
                 variant={tag === t ? 'filled' : 'outlined'}
                 color={tag === t ? 'primary' : 'default'}
                 onClick={() => setTag(tag === t ? null : t)}
-                sx={{ borderRadius: 1 }}
+                sx={{ borderRadius: '4px' }}
               />
             ))}
           </Box>
@@ -2393,9 +2393,9 @@ export default function NoteDetailPage() {
           <Typography variant="body2" sx={{ color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>
             {note.date}
           </Typography>
-          {note.status && <Chip label={note.status} size="small" variant="outlined" sx={{ borderRadius: 1 }} />}
+          {note.status && <Chip label={note.status} size="small" variant="outlined" sx={{ borderRadius: '4px' }} />}
           {note.tags.map((t) => (
-            <Chip key={t} label={t} size="small" variant="outlined" sx={{ borderRadius: 1 }} />
+            <Chip key={t} label={t} size="small" variant="outlined" sx={{ borderRadius: '4px' }} />
           ))}
         </Stack>
 
@@ -2594,7 +2594,7 @@ export default function AboutPage() {
                   </Stack>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 3 }}>
                     {c.tags.map((tag) => (
-                      <Chip key={tag} label={tag} size="small" color="primary" variant="outlined" sx={{ borderRadius: 1 }} />
+                      <Chip key={tag} label={tag} size="small" color="primary" variant="outlined" sx={{ borderRadius: '4px' }} />
                     ))}
                   </Box>
                 </Grid>
@@ -2646,13 +2646,13 @@ export default function ContactPage() {
         </Typography>
 
         <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1.5, mt: 5, mb: 7 }}>
-          <Button variant="contained" size="large" href={`mailto:${CONTACT_EMAIL}`} startIcon={<EmailRoundedIcon />} sx={{ borderRadius: 1 }}>
+          <Button variant="contained" size="large" href={`mailto:${CONTACT_EMAIL}`} startIcon={<EmailRoundedIcon />} sx={{ borderRadius: '4px' }}>
             이메일 보내기
           </Button>
-          <Button variant="outlined" size="large" href={PORTFOLIO_URL} target="_blank" rel="noopener" startIcon={<LaunchRoundedIcon />} sx={{ borderRadius: 1 }}>
+          <Button variant="outlined" size="large" href={PORTFOLIO_URL} target="_blank" rel="noopener" startIcon={<LaunchRoundedIcon />} sx={{ borderRadius: '4px' }}>
             포트폴리오
           </Button>
-          <Button variant="outlined" size="large" href={GITHUB_URL} target="_blank" rel="noopener" startIcon={<GitHubIcon />} sx={{ borderRadius: 1 }}>
+          <Button variant="outlined" size="large" href={GITHUB_URL} target="_blank" rel="noopener" startIcon={<GitHubIcon />} sx={{ borderRadius: '4px' }}>
             GitHub
           </Button>
         </Stack>
@@ -2762,10 +2762,10 @@ export default function Home() {
             플랫폼 설계부터 운영까지 — 데이터 기반 의사결정 체계를 만드는 엔지니어링.
           </Typography>
           <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1.5, mt: 5 }}>
-            <Button component={RouterLink} to="/products" variant="contained" size="large" endIcon={<ArrowForwardRoundedIcon />} sx={{ borderRadius: 1 }}>
+            <Button component={RouterLink} to="/products" variant="contained" size="large" endIcon={<ArrowForwardRoundedIcon />} sx={{ borderRadius: '4px' }}>
               제품 보기
             </Button>
-            <Button component={RouterLink} to="/contact" variant="outlined" size="large" sx={{ borderRadius: 1 }}>
+            <Button component={RouterLink} to="/contact" variant="outlined" size="large" sx={{ borderRadius: '4px' }}>
               문의하기
             </Button>
           </Stack>
@@ -2839,7 +2839,7 @@ export default function Home() {
       </GridSection>
 
       <GridSection index="04" label="CONTACT" title="함께 일할 사람을 찾고 계신가요?" caption="플랫폼을 설계하고, 데이터로 굴러가게 만들고, 팀이 더 빠르게 만들 환경까지 함께 세울 사람입니다.">
-        <Button component={RouterLink} to="/contact" variant="contained" size="large" endIcon={<ArrowForwardRoundedIcon />} sx={{ borderRadius: 1 }}>
+        <Button component={RouterLink} to="/contact" variant="contained" size="large" endIcon={<ArrowForwardRoundedIcon />} sx={{ borderRadius: '4px' }}>
           연락처 보기
         </Button>
       </GridSection>
