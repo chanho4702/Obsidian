@@ -381,10 +381,71 @@ export interface NoteMeta {
   tags: string[];
   /** 볼트 frontmatter 의 작성일 (YYYY-MM-DD). 없으면 빈 문자열. */
   date: string;
-  /** 볼트 frontmatter 의 상태. 없으면 빈 문자열. */
+  /**
+   * 배지용으로 줄인 상태 라벨(`statusLabel` 산출물, 최대 24자). 없으면 빈 문자열.
+   * 볼트 원문 상태는 최대 237자에 커밋 SHA·마크다운·위키링크가 섞여 있어 싣지 않는다.
+   */
   status: string;
 }
 ```
+
+- [ ] **Step 1.5: 제목·상태 정규화 함수를 `scripts/notes/transform.mjs` 에 추가한다**
+
+실제 볼트 데이터를 보고 추가된 단계다. 두 가지 실측 문제가 있다.
+
+1. **제목에 번호가 중복된다.** 20편 중 11편의 H1 이 `15 — ALM·Wiki 백엔드 …` 처럼 번호로
+   시작한다. 화면은 `NO.15` 를 모노 라벨로 따로 렌더하므로 그대로 두면 번호가 두 번 나온다.
+2. **`상태` 값이 배지로 쓸 수 없다.** 길이가 3자에서 **237자**까지 분포하고, 커밋 SHA·
+   `**굵게**`·`[[위키링크]]` 가 섞여 있다. 특히 15번은 `[[17 Wave B …]]` 를 통째로 품고 있어
+   그대로 렌더하면 링크 문법이 화면에 노출된다.
+
+`transform.mjs` 끝에 다음 두 함수를 추가한다(순수 함수 계약 유지 — I/O 없음):
+
+```js
+/** H1 앞에 붙은 번호와 구분자를 뗀다. 화면이 NO.15 를 따로 렌더하므로 중복을 막는다. */
+export function stripNumberPrefix(title) {
+  return title.replace(/^\d\d\s*(?:[—–-]\s*)?/, '').trim();
+}
+
+/**
+ * frontmatter 의 `상태` 를 배지용 짧은 라벨로 줄인다.
+ * 첫 구분자(괄호 · 가운뎃점 · 대시 · 플러스) 앞까지만 취하고 마크다운/위키링크 문법을 턴다.
+ * 원문(커밋 SHA·잔여 작업 메모)은 사이트에 싣지 않는다 — 배지 자리에 들어갈 정보가 아니다.
+ */
+export function statusLabel(status) {
+  return status
+    .split(/\s*\(|\s·\s|\s[—–-]\s|\s\+\s/)[0]
+    .replace(/\[\[.*?\]\]/g, '')
+    .replace(/\*\*/g, '')
+    .trim()
+    .slice(0, 24);
+}
+```
+
+`scripts/notes/transform.test.mjs` 에 테스트를 추가한다(import 목록에도 두 함수를 넣는다):
+
+```js
+test('제목 앞 번호와 구분자를 뗀다', () => {
+  assert.equal(stripNumberPrefix('15 — ALM·Wiki 백엔드 요구사항'), 'ALM·Wiki 백엔드 요구사항');
+  assert.equal(stripNumberPrefix('05 API 게이트웨이 설계'), 'API 게이트웨이 설계');
+  assert.equal(stripNumberPrefix('번호 없는 제목'), '번호 없는 제목');
+});
+
+test('상태를 배지용 짧은 라벨로 줄인다', () => {
+  // 실제 볼트 15번 — 237자에 위키링크와 굵게 문법이 섞여 있다.
+  assert.equal(
+    statusLabel('설계 확정 + Wave A 완료(07-19) + **Wave B 완료(2026-07-21)** — 상세는 [[17 Wave B]] · 다음: Wave C'),
+    '설계 확정',
+  );
+  assert.equal(statusLabel('구현 완료 (2026-07-01, gateway-server :8000)'), '구현 완료');
+  assert.equal(statusLabel('구현·수정 완료 (커밋: my e02fdc2)'), '구현·수정 완료');
+  assert.equal(statusLabel('완료 · 배포·E2E 검증 완료(2026-07-20)'), '완료');
+  assert.equal(statusLabel('정리본'), '정리본');
+});
+```
+
+Run: `node --test scripts/notes/transform.test.mjs`
+Expected: `# pass 20`, `# fail 0`
 
 - [ ] **Step 2: 동기화 스크립트를 쓴다**
 
@@ -409,6 +470,8 @@ import {
   extractTitle,
   transformWikiLinks,
   transformCallouts,
+  stripNumberPrefix,
+  statusLabel,
 } from './notes/transform.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -458,12 +521,13 @@ async function main() {
 
     const tags = Array.isArray(meta.tags) ? meta.tags : meta.tags ? [String(meta.tags)] : [];
     const date = typeof meta['작성일'] === 'string' ? meta['작성일'] : '';
-    const status = typeof meta['상태'] === 'string' ? meta['상태'] : '';
+    const rawStatus = typeof meta['상태'] === 'string' ? meta['상태'] : '';
+    const status = rawStatus ? statusLabel(rawStatus) : '';
     if (!tags.length || !date) missingMeta.push(file);
     broken.forEach((b) => brokenAll.push(`${file} → [[${b}]]`));
 
     await writeFile(path.join(OUT_DIR, `${id}.md`), `${body.trimEnd()}\n`, 'utf8');
-    index.push({ id, title, tags, date, status });
+    index.push({ id, title: stripNumberPrefix(title), tags, date, status });
   }
 
   const generated = [
