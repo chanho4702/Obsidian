@@ -1,7 +1,7 @@
 ---
 tags: [MOC, home, index]
 type: home
-updated: 2026-07-21
+updated: 2026-08-15
 ---
 
 # 🏠 Home — 학습 데이터 저장소
@@ -17,7 +17,7 @@ updated: 2026-07-21
 새 서비스를 추가하면 인증·게이트웨이·관측·배포가 자동으로 붙는 확장 가능한 MSA 스타터 템플릿. 그 위에 첫 제품으로 **ALM/Wiki 플랫폼**(구 PMS)을 올린다.
 - **[[내 목표]]** — 목표·아키텍처·구성요소 허브
 - **[[msa-roadmap]]** — Phase 0~6 마스터 로드맵
-- **[[00 개요 — 전체 구조]]** — MSA_TEMPLATE 실제 구현 로그(01~19번 + 설계문서) 진입점
+- **[[00 개요 — 전체 구조]]** — MSA_TEMPLATE 실제 구현 로그(01~25번 + 설계문서) 진입점
 - [[arms-engine-분석]] — 실제 운영 코드(ARMS) 레퍼런스
 
 ### 📘 MSA 이론 강의 — `MSA 강의/`
@@ -42,8 +42,8 @@ updated: 2026-07-21
 
 ## 📍 현재 위치
 - 인증 **0~10단계 완료** (Keycloak BFF + 자체 JWT + keycloakify 테마). 11단계는 Single Logout(백채널)만 완료, Gateway는 gateway-server로 별도 구현
-- MSA 템플릿: 게이트웨이·nginx 통합배포·CI·Loki 관측까지 서고, **ALM/Wiki 백엔드 Wave A(07-19)·Wave B(07-21) 완료** → [[00 개요 — 전체 구조]] 15~19번
-- 다음: **Wave C**(search/ES) · DB 트랙은 [[phase2-week-breakdown|Phase 2]]에서 템플릿에 붙여 실습 예정
+- MSA 템플릿: 게이트웨이·nginx 통합배포·CI·Loki 관측과 **ALM/Wiki 백엔드 Wave A·B·C 완료**. Wave C에서 search-service·OpenSearch·Redis Streams 소비·권한 필터 GraphQL·원자 재색인·GHCR 자동배포까지 실배포 검증 → [[25 Wave C — search-service 구현·배포 완료기록 (2026-08-15)]]
+- 다음: wiki-front 통합 검색 UI 또는 **Wave D**(ALM 색인 확장). DB 트랙은 [[phase2-week-breakdown|Phase 2]]에서 템플릿에 붙여 실습 예정
 
 ## 🗂️ 보관함 구조
 ```
