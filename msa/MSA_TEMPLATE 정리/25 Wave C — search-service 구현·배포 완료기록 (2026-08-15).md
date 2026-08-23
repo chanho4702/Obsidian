@@ -1,7 +1,7 @@
 ---
 tags: [msa, template, wave-c, search-service, opensearch, redis-streams, graphql, grpc, cicd]
 작성일: 2026-08-15
-상태: 구현·배포 완료
+상태: 구현·배포 완료 + 통합 검색 후속 완료
 repos: [platform-backend, wiki-backend, gateway-server, infra-settings]
 spec: [[2026-08-02-wave-c-search-service-design]]
 plan: [[2026-08-02-wave-c-search-service]]
@@ -19,6 +19,7 @@ Wave C는 **위키 변경을 Redis Streams로 받아 OpenSearch에 색인하고,
 
 > [!important] 이번 범위
 > 백엔드·인프라·배포까지다. wiki-front 통합 검색 화면과 ALM 색인은 후속 웨이브다.
+> wiki-front 통합 검색과 유효 JWT E2E는 후속 작업에서 완료했다. → [[26 wiki-front 통합 검색 UI + 라이브 JWT E2E (2026-08-15)]]
 
 ## 1. 완성된 토폴로지
 
@@ -141,6 +142,8 @@ CI는 platform-backend 전체 `gradlew build` 후 org-service·search-service �
 | CI | platform-backend run `31818405300` success |
 | 배포 | org-service `31818716588`, search-service `31818717983` success |
 | 최종 문서 리뷰 | 소스 대조 단언 16/16 + Codex 최종 리뷰 PASS |
+| 유효 JWT 검색 | Keycloak 로그인→자체 JWT→Gateway 경유 검색 HTTP 200, 폴더 6 hits |
+| wiki-front 후속 | 통합 검색 UI·유형별 라우팅·상태 처리·안전한 highlight 완료, 593 tests green |
 
 ## 9. 현재 남은 갭
 
@@ -148,8 +151,8 @@ CI는 platform-backend 전체 `gradlew build` 후 org-service·search-service �
 - **재색인 이벤트 창** — 백필 중 소비자는 구 별칭에만 쓴다. 신·구 dual-write가 없어 전환 직전 변경이 새 인덱스에서 잠깐 빠질 수 있다.
 - **발행자 outbox 없음** — 소비자측 재시도·DLQ는 강하지만, wiki DB 커밋 후 Redis 발행이 실패하면 영구 누락이다. [[24 현재 아키텍처·구현 평가 + 개선 백로그 (2026-08-03)]] M-07.
 - **dev gRPC 포트 예외** — wiki gRPC는 dev에서도 9111이라 +10000 규약과 어긋난다.
-- **라이브 기능 검증 두 건 미완료** — 유효 JWT로 실제 200 + hits를 받는 것, dev 오프셋 클러스터에서 search-service를 기동하는 것.
-- **프론트 미구현** — wiki-front 검색 화면과 ALM 도메인 색인은 다음 범위다.
+- **dev-offset 라이브 검증 미완료** — dev 오프셋 클러스터에서 search-service를 기동하는 것은 아직 남아 있다.
+- **ALM 색인 미구현** — wiki-front 검색 화면은 완료했고, ALM 도메인 색인은 Wave D 범위다. → [[26 wiki-front 통합 검색 UI + 라이브 JWT E2E (2026-08-15)]]
 
 ## 10. 주요 커밋
 
@@ -165,8 +168,8 @@ CI는 platform-backend 전체 `gradlew build` 후 org-service·search-service �
 
 ## 11. 다음에 이어갈 것
 
-1. 유효 JWT를 사용한 실제 검색 200 + hits E2E
-2. wiki-front 통합 검색 UI
+1. ~~유효 JWT를 사용한 실제 검색 200 + hits E2E~~ → [[26 wiki-front 통합 검색 UI + 라이브 JWT E2E (2026-08-15)]]
+2. ~~wiki-front 통합 검색 UI~~ → [[26 wiki-front 통합 검색 UI + 라이브 JWT E2E (2026-08-15)]]
 3. Wave D ALM 이벤트·색인 확장
 4. 재색인 dual-write/이벤트 재생 정책
 5. DB outbox→Redis Streams 재전송, gRPC 서비스 인증
