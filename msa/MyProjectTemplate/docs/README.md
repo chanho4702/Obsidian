@@ -20,6 +20,7 @@
 - [컨테이너 빌드](container-build.md)
 - [로드맵](roadmap.md)
 - [검증 기록](verification.md)
+- [남은 작업 인수인계](remaining-work.md)
 
 ## 변경 시 동기화 규칙
 
