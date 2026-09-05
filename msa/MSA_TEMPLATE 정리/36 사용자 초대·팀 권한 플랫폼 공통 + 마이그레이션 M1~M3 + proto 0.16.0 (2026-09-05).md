@@ -65,7 +65,7 @@ gRPC 거부와 장애를 구분해야 하므로 `denied_reason` + 상태 거부�
 | 항목 | 상태 |
 |---|---|
 | org-admin 0.1.2 | 완료 — 팀 생성 직후 선택 유지, 초대 프리셋 쿼리, README vitest 주의. wiki-front faf47d7 |
-| 실제 스택 E2E | 초대 생성 → 링크 → 구글/비밀번호 로그인 → 자동 승인·팀·권한 확인, 미초대 로그인 → 승인 대기 → 승인. compose 재기동(realm 재import: `platform-admin` 클라이언트) 필요 |
+| 실제 스택 E2E | **완료(API 수준, 16/16)** — 재기동 없이: Keycloak Admin REST로 `platform-admin` 서비스 계정 생성·role 매핑, `ORG_INTERNAL_TOKEN`을 `.env`+`C:\deploy\platform.env`에 넣고 org/auth 컨테이너만 `--no-deps`로 재생성. auth JWK로 서명한 플랫폼 JWT로 게이트웨이 경유 호출: 관리자 /me globalRoles → 팀 생성 → 초대(inviteUrl, mailSent=false) → 초대받은 이메일 첫 로그인=ACTIVE+팀+전체 구성원, 초대 ACCEPTED → 미초대 첫 로그인=PENDING·403 "승인 대기 중인 계정입니다" → 승인 대기 목록 → 승인 → SUSPENDED 403 → DEACTIVATED(Keycloak 비활성은 가짜 사용자라 USER_NOT_FOUND 이벤트) → 마지막 관리자 본인 비활성 409 → members 배열/`/members/page`. **발견·수정 2건**: 초대 링크 `/invite/`가 nginx 정적 폴백에 삼켜짐(nginx 정규식에 invite 추가, cdc165f) + 게이트웨이 라우트·인증 예외 목록 부재(gateway 3280038·e06fb14). 이제 잘못된 토큰→안내 페이지, 유효 토큰→Keycloak 로그인 302. 브라우저 로그인 UI 경로는 사람이 한 번 눌러 보는 것만 남음 |
 | ALM 소비 | `/settings/org` 마운트, ALM 관리자 판정 org gRPC(denied_reason, 장애 503), 이메일 GetMembers — ALM 세션 진행 중 |
 | wiki-backend | `denied_reason`을 화면 문구로, `GetMembers`로 작성자 이메일 — 후속 |
 | SMTP | 생기면 Keycloak `verifyEmail` 켜고 초대 수락 조건 완화, 비밀번호 사용자 사전 생성(execute-actions email) |
