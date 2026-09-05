@@ -64,7 +64,7 @@ gRPC 거부와 장애를 구분해야 하므로 `denied_reason` + 상태 거부�
 
 | 항목 | 상태 |
 |---|---|
-| org-admin 0.1.2 | 팀 생성 직후 선택 리셋 버그·초대 프리셋 쿼리(`?scope&resourceId`) 반영 — 패키지 레인 진행 중, 나오면 wiki 범프 |
+| org-admin 0.1.2 | 완료 — 팀 생성 직후 선택 유지, 초대 프리셋 쿼리, README vitest 주의. wiki-front faf47d7 |
 | 실제 스택 E2E | 초대 생성 → 링크 → 구글/비밀번호 로그인 → 자동 승인·팀·권한 확인, 미초대 로그인 → 승인 대기 → 승인. compose 재기동(realm 재import: `platform-admin` 클라이언트) 필요 |
 | ALM 소비 | `/settings/org` 마운트, ALM 관리자 판정 org gRPC(denied_reason, 장애 503), 이메일 GetMembers — ALM 세션 진행 중 |
 | wiki-backend | `denied_reason`을 화면 문구로, `GetMembers`로 작성자 이메일 — 후속 |
