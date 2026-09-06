@@ -125,6 +125,16 @@
 
 **P1이 첫 구현 대상.** 상세 구현 플랜은 `plans/2026-09-05-agent-service-p1.md`(작성 예정).
 
+## 10.5 P2 상세 설계 결정 (2026-09-06 — 헤드리스 실측 조사 기반)
+
+- **워커 호출**: Java 디스패처가 `claude -p` 서브프로세스 스폰(공식 권장 경로). **비-bare 모드** — bare는 `.claude/`·CLAUDE.md를 전부 건너뛰므로 하네스 실체화 설계와 상충. 워크스페이스(리포 클론)에 하네스 실체화 후 그 cwd에서 실행.
+- **인증(C 혼용 확정)**: 도그푸딩 = `claude setup-token` 1회 → `CLAUDE_CODE_OAUTH_TOKEN` env(구독, 헤드리스 공식 지원, ~/.claude 마운트 불필요). 제품 기본 = `ANTHROPIC_API_KEY`(자격증명 3층). 우선순위 체계상 두 env 중 있는 걸 사용.
+- **MCP 연결**: run별 `--mcp-config` 인라인 JSON(http + `Authorization: Bearer <run 토큰>` — env 확장 `${...}` 지원). `--strict-mcp-config`로 리포의 .mcp.json 무시.
+- **권한**: `--permission-mode dontAsk` + `--allowedTools` 명시(Read/Edit/Bash(git *) 등 + `mcp__agent-platform__*`) + `--permission-prompts none`. 사람 개입 지점은 우리 게이트(WAITING_APPROVAL)이지 CLI 프롬프트가 아니다.
+- **비용 원장**: `--output-format json`의 `usage.total_cost_usd`·모델별 토큰을 run 종료 시 UsageLedger에 적재(클라이언트 추정치임을 명시).
+- **재개**: 원칙은 D9(기록에서 재시작) 유지. `session_id`/`--resume`은 같은 run 내 재시도 최적화로만 선택 사용.
+- **P2 슬라이스 재조정**: **P2a** = 호스트 프로세스 워커(러너 머신, per-run 임시 워크스페이스, 우리 리포 한정) + 루프 전체 — 격리 요건 §7을 신뢰 환경 한정으로 완화. **P2b** = 컨테이너 격리·egress 제한·run-scoped git 토큰(§7 완전 충족, 외부 공개 전 필수). 사유: 도그푸딩 가속, Windows 러너에서 컨테이너 내 구독 인증이 취약.
+
 ## 11. AI 부가기능 후보 백로그 (2026-09-05 사용자 요청 — 우선순위 미정)
 
 run 실행(워커)과 별개로, agent-service의 내부 ChatClient(P2에서 배관 확보)로 제공하는 요약·분석류 기능. P1 도그푸딩 시작 시 ALM 이슈로 이관해 우선순위를 정한다.
