@@ -1,7 +1,7 @@
 ---
 tags: [msa, template, migration-service, wiki-backend, wiki-front, 이관, 배포, 히스토리, 병렬세션]
 작성일: 2026-09-05
-상태: X1~X4 완료·배포(migration-service 운영 기동) / 유실·중복 방지 보강 배포 / 페이지 히스토리 W30 푸시 / wiki-backend 후속 2건 진행 중
+상태: X1~X4 완료·배포 / 보강 배포 / 히스토리 W30 / 위키 후속 2건·org 소비(계정 상태 게이트·GetMembers) 배포 — 이관 모듈은 09-06 사용자 지시로 당분간 배제
 ---
 
 # 37 — 이관 모듈 분리(migration-service) + 유실·중복 방지 + 페이지 히스토리 컨플 복제 (2026-09-05)
@@ -65,4 +65,22 @@ wiki-front b63162d: 잡 상세에 "잡 이슈" 섹션 + 링크 정리 재실행 
 | 실기 컨플 DC 실측 · 노션 라이브 추출기 | 사용자 준비 / 범위 밖 |
 | 검색 재색인 1회 · Keycloak T1/T4 · SMTP | 그대로 |
 | wiki-backend가 org `denied_reason`·`GetMembers` 소비 | 후속 |
+| 관리자 PAT `/api/auth/agents` 차단 여부 · PAT B단계 OpenAPI | 결정 대기 |
+
+## 6. 09-06 이어서 — 위키 후속 2건 + org 0.16.0 소비
+
+- **사용자 지시**: "이관 모듈은 나중에 따로 작업" → migration-service 후속(importKey 송신·노션 추출기·DC 실측·리포 시크릿) 배제. 배포된 상태(b27e56a) 그대로.
+- wiki-backend 95f9f8c: 리비전 복원 선택 본문 `{changeNote}`(히스토리 복원 다이얼로그가 보냄) + V38 `page.import_key`(부분 유니크 `import_key IS NOT NULL AND deleted_at IS NULL`, 같은 키면 `outcome: EXISTING`) — 위키 안에서만 닫히는 변경이라 커밋, 엔진 연결은 보류. 390 테스트.
+- wiki-backend d1820f0: `PermissionDecision(allowed, deniedReason)` + `AccountStatusInterceptor`(/api/wiki/**, !docs, 3상태 403·구성원 없음 통과·불능 503·30초 캐시), ALM과 같은 문구 4종. ALM과 달리 `isAllowed` 기본 메서드 유지(목록 필터 호출부 10곳), 전역 관리자 판정은 ListUserGrants 그대로(CheckPermission(GLOBAL) 이관은 별도). **실스택 E2E 6/6**: PENDING → 위키 403 "승인 대기 중인 계정입니다" → 승인 → 200 → SUSPENDED → 403 "정지된 계정입니다". 416 테스트.
+- wiki-backend e13272d: `directory/`(GrpcMemberDirectory 200개 청크·부분 실패 강등·UNAVAILABLE 우선) — 메일은 커밋 뒤 트랜잭션당 GetMembers 1회로 주소 결정(디렉터리 우선·스냅샷 폴백), **SUSPENDED도 미발송**(ALM은 DEACTIVATED만 — 정지 계정에 문서 제목이 제목줄로 새는 것을 막음; ALM도 맞출지는 후보), 리비전·댓글·presence의 빈 이름만 배치 보강. 444 테스트.
+- wiki-front d984884: `OrgAccountGate`(alm-front 로컬 구현 이식 — org-admin 패키지에는 PENDING만 있음) 4상태 + 조회 실패 fail-closed. HomePage가 listSpaces 거부를 못 잡아 스켈레톤이 영원히 돌던 결함 수정. 1180 테스트.
+
+## 7. 남은 것(§5 갱신)
+
+| 항목 | 상태 |
+|---|---|
+| 이관 모듈(migration-service 후속·시크릿·DC 실측·노션) | **배제 — 나중에 따로** |
+| ALM 메일도 SUSPENDED 미발송으로 맞출지 | 후보(06 세션) |
+| 위키 전역 관리자 판정을 CheckPermission(GLOBAL, ADMIN)으로 | 후보 |
+| 검색 재색인 1회 · Keycloak T1/T4 · SMTP | 그대로(사용자) |
 | 관리자 PAT `/api/auth/agents` 차단 여부 · PAT B단계 OpenAPI | 결정 대기 |
