@@ -1,7 +1,7 @@
 ---
 tags: [msa-template, 설계, 위키, alm, 스마트링크]
 created: 2026-11-08
-status: 확정(구현 중)
+status: 배포됨(2026-11-08)
 ---
 
 # W3 위키↔ALM 스마트 링크 — 기획·설계 스펙 (2026-11-08)
@@ -109,6 +109,12 @@ status: 확정(구현 중)
 | infra | 없음(기본값 전부 설치). `.env.example`에 `PLATFORM_PRODUCTS` 주석 1줄은 K1 때 | |
 
 배포 순서: alm-backend → gateway → alm-front → wiki-front(앞 셋이 없어도 wiki-front는 일반 링크로 안전하다).
+
+## 7-0. 결과 (2026-11-08)
+- 커밋: alm-backend eb7dd34 · gateway 280c6cc(master) · alm-front 0053317 · wiki-front 633f793 → 7ffbd34(리뷰 I1·M1 + 하이라이트 상태 카드 도착 크래시) → 0e09f20(재리뷰 R1). 리뷰어 판정 머지 가능. 배포 순서대로 전부 배포.
+- 실스택 E2E 7/7(alice, 스페이스 1): browse·모달 주소 둘 다 승격, 키·제목·상태명·Lozenge·aria-label, 없는 키 일반 링크, 클릭 → `/alm/projects/3/issues?issue=AASD-6`.
+- 구현이 스펙과 달리 정한 것: 서버 50키 상한은 유효 키 기준·반복 파라미터 허용·org 불능은 503(빈 배열 아님); 게이트웨이 빈 `PLATFORM_PRODUCTS`=전부 설치; 프론트 토큰 치환(--chanho-color-text-link 등)·조각 간격은 공백 한 칸·인라인 댓글 앵커는 `data-anchor-ignore`로 제목·배지 제외.
+- 후속 목록은 49 작업 목록 §0 W3 항목.
 
 ## 7. 열린 결정(후속, 이번엔 임시값)
 - ❓ 카드/임베드 표시 추가 여부(`::bookmark` 확장) — Could.
